@@ -5,6 +5,7 @@
 
 **Target deadline:** April 18, 2026  
 **Parent plan:** `STAFF_ADMIN_ROADMAP.md`  
+**Production DB (group choice):** **Option B** — **MySQL** (not Render Postgres). **Preferred:** **Render** **Web Service** (PHP) + **Private Service** (MySQL Docker on Render). **Optional:** MySQL on another managed host. See `STAFF_ADMIN_ROADMAP.md` §2 & Phase 0.
 
 This doc focuses **only** on **Resident** as **master data** and **workflows**. Official course deliverables stay in PDF per `SIA2-DOCU.MD`.
 

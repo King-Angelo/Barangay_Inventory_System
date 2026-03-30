@@ -26,7 +26,7 @@ Fill in **Member 2–4** names. **Group Leader** = you (GitHub / repo owner).
 **Name:** *(you)*  
 
 1. **Repository & process:** `main` / `feature/*`, protect `main` if possible; resolve merge conflicts; ensure `.env` is gitignored.  
-2. **Phase 0 facilitation:** Schedule decision on **production DB** (Render Postgres vs MySQL); chase missing answers.  
+2. **Phase 0 facilitation:** **Production DB locked — Option B:** **Render Web Service (PHP) + MySQL** — **preferred:** MySQL as Render **Private Service** (single provider). Chase: internal `DB_HOST` vs external endpoint, credentials in Render env, **`mysqldump`** backup habit, **one** connectivity/E2E test, `.env.example` placeholders.  
 3. **Integration story:** Own the **architecture / data-flow** sections of the PDF; keep `FLOWCHART.md` aligned with reality.  
 4. **Phase 4 (DevOps):** **GitHub Actions** workflow; **Render** service + secrets; **Dockerfile** review (implement or pair with Member 4).  
 5. **Phase 5:** Merge sections into **final PDF** per `SIA2-DOCU.MD`; **Canvas** submission; **presentation** structure and timekeeping.  
@@ -41,10 +41,11 @@ Fill in **Member 2–4** names. **Group Leader** = you (GitHub / repo owner).
 **Name:** _____________________  
 
 1. **ERD v1** (draw + export for PDF): barangay, `users` + role, `residents` (**`UNIQUE(barangay_id,email)`**), permits, payments, `integration_events`, optional notification log; note legacy `patient` / `medsupply` + optional `patient.resident_id`.  
-2. **SQL / migrations:** Create/alter scripts for new tables + `users.role`; seed **admin** + **permit_types** (Barangay Clearance).  
-3. **Align with** `RESIDENT_ROADMAP.md` (frozen rules: admin-only archive/bar change, staff submit → admin approve).  
-4. **Support** Member 3 & 4 with **column names**, FKs, and test data dumps (no real PII in repo).  
-5. **Document** table descriptions for PDF **§F. Database Design**.
+2. **Production MySQL (Option B):** Help provision **MySQL** — **Render Private Service** (preferred) or external managed host; import **`mimds.sql`** + new migrations; document **`.env.example`** placeholders (no secrets); confirm **Web Service → DB** connectivity with Leader.  
+3. **SQL / migrations:** Create/alter scripts for new tables + `users.role`; seed **admin** + **permit_types** (Barangay Clearance).  
+4. **Align with** `RESIDENT_ROADMAP.md` (frozen rules: admin-only archive/bar change, staff submit → admin approve).  
+5. **Support** Member 3 & 4 with **column names**, FKs, and test data dumps (no real PII in repo).  
+6. **Document** table descriptions for PDF **§F. Database Design**.
 
 ---
 

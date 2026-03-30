@@ -72,7 +72,7 @@ flowchart LR
     end
 
     subgraph data [Data and integration]
-        DB[(MySQL / Postgres\nresidents, permits, ...)]
+        DB[(MySQL — Render Private\nService or external host;\nMariaDB-compatible)]
         O[(integration_events\noutbox)]
         W[Worker — email / logs]
     end

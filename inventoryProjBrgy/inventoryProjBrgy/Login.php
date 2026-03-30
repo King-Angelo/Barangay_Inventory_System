@@ -1,9 +1,9 @@
 <?php
-include 'dbcon.php';
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 if (isset($_POST['btn-send'])) {
+    include 'dbcon.php';
     $user = trim((string)($_POST['user'] ?? ''));
     $pass = (string)($_POST['pass'] ?? '');
     $esc = mysqli_real_escape_string($con, $user);
