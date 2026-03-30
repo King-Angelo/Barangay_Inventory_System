@@ -1,4 +1,4 @@
 .env
-.end.local
+.env.local
 *.log
 /vendor/
