@@ -1,6 +1,6 @@
 <?php
-require_once 'require_auth.php';
-include 'actions.php';
+require_once __DIR__ . '/require_auth.php';
+include __DIR__ . '/actions.php';
 include __DIR__ . '/dbcon.php';
 
 $usr=$_SESSION['user'];
@@ -9,11 +9,11 @@ $r=mysqli_fetch_assoc($q);
 ?>
 
 <html>
-<?php include 'head.php'; ?>
+<?php include __DIR__ . '/head.php'; ?>
 <body>
 <div class="pane">
     <?php 
-    include 'nav.php';
+    include __DIR__ . '/nav.php';
     ?>
 
     <div class="content">

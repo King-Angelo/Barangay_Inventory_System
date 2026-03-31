@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/session_init.php';
+chdir(__DIR__);
 inv_session_start();
 
 $login_error = '';

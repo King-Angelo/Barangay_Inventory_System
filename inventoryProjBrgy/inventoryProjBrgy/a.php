@@ -29,7 +29,7 @@ else{
 //     }
 
 // include __DIR__ . '/dbcon.php';
-// include 'head.php';
+// include __DIR__ . '/head.php';
 // if (isset($_POST['btn-send'])){
 // $usr=$_POST['User'];
 // $pass=$_POST['Pass'];

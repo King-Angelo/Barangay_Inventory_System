@@ -1,7 +1,7 @@
 <?php
-require_once 'require_auth.php';
+require_once __DIR__ . '/require_auth.php';
 include __DIR__ . '/dbcon.php';
-include 'actions.php';
+include __DIR__ . '/actions.php';
  $id=$_GET['id2'];
  $id2=$_GET['id'];
 $query=mysqli_query($con,"SELECT * FROM medsupply WHERE n=$id");
@@ -14,11 +14,11 @@ $r2=mysqli_fetch_assoc($query2);
 
 <!doctype html>
 <html>
-<?php include 'head.php'; ?>
+<?php include __DIR__ . '/head.php'; ?>
 <?php $item=$r['iname']; ?>
 <body>
 <div class="pane">
-<?php include 'nav.php'; ?>
+<?php include __DIR__ . '/nav.php'; ?>
    <div class="content">
      
           </div>

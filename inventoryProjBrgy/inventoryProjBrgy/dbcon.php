@@ -1,4 +1,5 @@
 <?php
+chdir(__DIR__);
 require_once __DIR__ . '/env_bootstrap.php';
 inv_load_dotenv(__DIR__ . '/.env.local');
 inv_load_dotenv(__DIR__ . '/.env');

@@ -1,15 +1,15 @@
 <?php
-require_once 'require_auth.php';
-include 'actions.php';
+require_once __DIR__ . '/require_auth.php';
+include __DIR__ . '/actions.php';
 // $loc=$_GET['loc'];
 ?>
 
 <!doctype html>
 <html>
-<?php include 'head.php'; ?>
+<?php include __DIR__ . '/head.php'; ?>
 <body>
 <div class="pane">
-<?php include 'nav.php'; ?>
+<?php include __DIR__ . '/nav.php'; ?>
    <div class="content">
      
           </div>
