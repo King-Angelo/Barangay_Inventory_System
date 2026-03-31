@@ -4,8 +4,8 @@
 
 FROM php:8.2-apache
 
-RUN docker-php-ext-install mysqli > /dev/null \
-	&& docker-php-ext-enable mysqli
+# docker-php-ext-install enables mysqli; a second enable triggers "already loaded" warnings.
+RUN docker-php-ext-install mysqli > /dev/null
 
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 RUN printf '%s\n' 'log_errors=On' 'error_log=/dev/stderr' > "$PHP_INI_DIR/conf.d/zz-docker-log.ini"
