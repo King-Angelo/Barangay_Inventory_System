@@ -72,7 +72,7 @@ flowchart LR
     end
 
     subgraph data [Data and integration]
-        DB[(MySQL — Render Private\nService or external host;\nMariaDB-compatible)]
+        DB[(MySQL — local XAMPP\nor chosen host;\nMariaDB-compatible)]
         O[(integration_events\noutbox)]
         W[Worker — email / logs]
     end
@@ -130,7 +130,7 @@ flowchart LR
     B --> C[Composer install]
     C --> D[php -l / PHPUnit / Newman]
     D --> E{Pass?}
-    E -->|Yes| F[Merge to main\noptional: deploy Render]
+    E -->|Yes| F[Merge to main\noptional: deploy to chosen host]
     E -->|No| G[Fix and push again]
 ```
 

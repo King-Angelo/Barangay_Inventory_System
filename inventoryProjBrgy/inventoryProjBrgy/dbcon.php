@@ -5,7 +5,7 @@ inv_load_dotenv(__DIR__ . '/.env.local');
 inv_load_dotenv(__DIR__ . '/.env');
 
 // Default 127.0.0.1 (TCP). "localhost" on Linux PHP often uses a Unix socket that does not exist
-// in Docker → mysqli_sql_exception "No such file or directory". Render MUST set DB_HOST to your MySQL service hostname.
+// in some containers → mysqli_sql_exception. For remote MySQL, set DB_HOST (and related vars) via `.env.local` or server env.
 $host = getenv('DB_HOST') !== false && getenv('DB_HOST') !== '' ? (string) getenv('DB_HOST') : '127.0.0.1';
 $dbPort = getenv('DB_PORT');
 $port = ($dbPort !== false && $dbPort !== '') ? (int) $dbPort : 3306;

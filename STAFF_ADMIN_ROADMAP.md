@@ -22,7 +22,7 @@ Evolve the existing **Medical Inventory & Monitoring** prototype into a **barang
 - Keeps the **current inventory / medical module** as-is initially, **merged at the data level** via shared **barangay** context and optional link (`patient.resident_id`).
 - Adds **e-governance** capabilities: **resident records**, **permit/clearance** (one type in v1), **mock payment flow**, **real email notifications**, **integration events (DB outbox)**.
 - Exposes a **REST API** with **JWT** for integration demos, while **legacy PHP pages** continue to use **session** during transition.
-- Deploys the **PHP app** to **Render** as a **Web Service** (via **Dockerfile** as needed). **Production database — Option B (locked):** **MySQL** (MariaDB-compatible with local XAMPP); **not** Render Postgres. **Preferred (single provider):** MySQL on Render as a **Private Service** (Docker + disk; see [Deploy MySQL](https://docs.render.com/deploy-mysql)) — internal hostname/port in the same workspace. **Optional fallback:** third-party managed MySQL if the team wants fully managed backups/HA. Connection via env (e.g. `DATABASE_URL` or host/user/pass).
+- Runs the **PHP app** **locally** (e.g. **XAMPP**) for development and demos; **optional** deployment later to **shared LAMP**, **VPS**, or another host if the group wants a public URL — not required by `SIA2-DOCU.MD`. **Production database — Option B (locked):** **MySQL** (MariaDB-compatible with local XAMPP). Connection via env (`DB_HOST`, `DB_USER`, `DB_PASS`, `DB_NAME`, `DB_PORT`) or `DATABASE_URL` if you standardize on that; **never commit secrets**.
 
 **v1 roles:** `staff`, `admin` only (no `resident` self-service portal until a later phase unless scope changes).
 
@@ -40,10 +40,10 @@ Evolve the existing **Medical Inventory & Monitoring** prototype into a **barang
 | RBAC | **`staff`** (day-to-day), **`admin`** (users/roles / sensitive actions) |
 | Payments | **Mock** provider + documented webhook/idempotency pattern |
 | Notifications | **Real email** (SMTP); **no SMS** in v1 |
-| Middleware | **MySQL/MariaDB `integration_events` outbox** + **worker** script or Render **cron / second service** (no Docker Compose / RabbitMQ requirement for local dev) |
+| Middleware | **MySQL/MariaDB `integration_events` outbox** + **worker** script or OS **scheduler / cron** (or a second lightweight process) — no Docker Compose / RabbitMQ requirement for local dev |
 | Testing | **Manual integration test matrix** + **Postman**; **light automation**: **Newman and/or PHPUnit** in **GitHub Actions** |
 | Version control | **Git** / GitHub (group owner: designated member) |
-| Hosting | **Render** only (preferred): **Web Service** (PHP) + **Private Service** (MySQL Docker, Option B). **Or** Web Service + third-party managed MySQL. Credentials via **environment variables** (never in Git) |
+| Hosting | **Local-first** (XAMPP + MySQL). **Optional:** shared **LAMP**, **VPS**, or managed PHP+MySQL if the team deploys — credentials via **environment variables** / `.env.local` (**never in Git**) |
 | Endpoints | Minimum **5** REST operations on resources + **`POST /auth/login`** (or equivalent) as **6th** for JWT |
 
 ---
@@ -52,7 +52,7 @@ Evolve the existing **Medical Inventory & Monitoring** prototype into a **barang
 
 ### Phase 0 — Foundations (do first)
 
-- [ ] **Database hosting (Option B — chosen):** Provision **MySQL** — **preferred:** Render **Private Service** + disk; set **`DB_HOST`** (internal service name, e.g. `mysql-foo:3306`) on the Web Service. **Or** external managed MySQL with firewall/TLS as needed. Document **host/port/database/user** (in `.env.example` as placeholders only). **Import** schema + seed (`mimds.sql` + new migrations). Run **one** connectivity test (app → DB) before feature freeze. Use **`mysqldump`** for backups (disk snapshots alone are not a safe DB restore per Render docs).
+- [ ] **Database (Option B — chosen):** Run **MySQL** locally (XAMPP) or on your chosen host. Document **host/port/database/user** (in `.env.example` as placeholders only). **Import** schema + seed (`mimds.sql` + new migrations). Run **one** connectivity test (app → DB) before feature freeze. Use **`mysqldump`** (or host backup tools) regularly for backups.
 - [ ] **Git:** Branch strategy (`main` + short `feature/*`). **`.env` / secrets** not committed.
 - [ ] **ERD v1** (for PDF): barangay, users + roles, residents, permit_type (1 row), permits, payments (mock), notifications or mail log, `integration_events`; **existing** `patient` / `medsupply` / … retained with **merge note** (shared barangay; optional `resident_id` on `patient` later).
 - [ ] **Security baseline:** Plan migration from plaintext passwords to **`password_hash`** for `users`; **prepared statements** on all **new** API code.
@@ -79,12 +79,12 @@ Resident tables + staff CRUD begin once RBAC baseline ships. **Detail:** `RESIDE
 - [ ] Document **data flow** and **sequence** for PDF (Integration Design).
 - [ ] Mock webhook handler (if in scope) with **signature check** documented for production parity.
 
-### Phase 4 — DevOps: CI + Render
+### Phase 4 — DevOps: CI + optional deploy
 
 - [ ] **GitHub Actions:** on push — PHP + Composer install, **`php -l`** and/or **PHPUnit** and/or **Newman** (pick what fits; keep workflow **green**).
-- [ ] **Dockerfile** for PHP app; **Render** Web Service; env: `DATABASE_URL`, `JWT_SECRET`, SMTP vars, `APP_ENV`.
-- [ ] **Worker / cron** for outbox on Render (or documented limitation + manual trigger for prototype).
-- [ ] **Health** route + **minimal logging** (no secrets/PII in logs).
+- [ ] **Optional:** Document how you run PHP + MySQL locally and, if you deploy, env vars (`DB_*`, `JWT_SECRET`, SMTP, `APP_ENV`) — no fixed hosting vendor.
+- [ ] **Worker / scheduler** for outbox (local cron, manual trigger for prototype, or host scheduler if deployed).
+- [ ] **Health** route (`health.php`) + **minimal logging** (no secrets/PII in logs).
 
 ### Phase 5 — Documentation & submission (before April 18, 2026)
 
@@ -102,7 +102,7 @@ Resident tables + staff CRUD begin once RBAC baseline ships. **Detail:** `RESIDE
 | Prototype | Phases 1–3 + legacy + API |
 | Integration (APIs & middleware) | Phase 2 API + Phase 3 outbox & email |
 | Testing & security | Phase 2 Postman; Phase 4 CI; Phases 1–2 RBAC & validation |
-| DevOps | Phase 4 Git + Actions + Render |
+| DevOps | Phase 4 Git + Actions (+ optional deploy doc) |
 | Documentation | Phase 5 PDF |
 | Presentation | Phase 5 |
 
@@ -113,7 +113,7 @@ Resident tables + staff CRUD begin once RBAC baseline ships. **Detail:** `RESIDE
 | Risk | Mitigation |
 |------|------------|
 | Scope creep (residents portal, many permit types) | Keep v1 to **staff/admin** + **one permit type**; document Phase 2+ in limitations |
-| Render app ↔ MySQL | **Option B** locked; **private service** in workspace vs **external** host — verify **connectivity**, connection limits, **backup strategy**, and **one** E2E deploy test before demo week |
+| App ↔ MySQL | **Option B** locked — verify **connectivity**, **backup strategy**, and (if you deploy) **one** smoke test on the target host before demo week |
 | Outbox never processed | Schedule **worker** or document **inline process** with honest limitation |
 | Email blocked / spam | Use reputable SMTP; keep **logs** and **screenshots** for grading |
 | Legacy SQL injection | Isolate **new** API as **gold standard**; plan legacy hardening or mark as technical debt |
@@ -122,7 +122,7 @@ Resident tables + staff CRUD begin once RBAC baseline ships. **Detail:** `RESIDE
 
 ## 6. Next actions (immediate)
 
-1. **Provision MySQL** (Render **Private Service** preferred for single-provider) + document connection in team runbook; **Web Service** env vars point at that DB (internal hostname or external endpoint).  
+1. **Provision MySQL** (local XAMPP or chosen host) + document connection in team runbook; **`DB_*`** / `.env.local` points at that DB.  
 2. Freeze **ERD v1** and create migration scripts.  
 3. Add **`role`** to users and protect one **admin-only** page.  
 4. Scaffold **`api/`** + Composer + first **login + one GET** with JWT.

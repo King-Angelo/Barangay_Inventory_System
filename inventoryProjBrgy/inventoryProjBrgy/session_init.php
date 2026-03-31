@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /**
- * Session cookies that work behind Render (TLS terminated at proxy; PHP often sees HTTP).
+ * Session cookies that work behind a reverse proxy (TLS terminated at proxy; PHP often sees HTTP).
  */
 function inv_session_start(): void
 {

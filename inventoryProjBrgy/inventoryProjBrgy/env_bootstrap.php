@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 /**
  * Load KEY=VALUE lines from a dotenv file without overriding existing environment variables
- * (Render / Docker / system env take precedence).
+ * (process / Docker / system env take precedence).
  */
 function inv_load_dotenv(string $path): void
 {

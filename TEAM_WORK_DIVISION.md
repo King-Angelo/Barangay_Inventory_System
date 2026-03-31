@@ -26,9 +26,9 @@ Fill in **Member 2–4** names. **Group Leader** = you (GitHub / repo owner).
 **Name:** *(you)*  
 
 1. **Repository & process:** `main` / `feature/*`, protect `main` if possible; resolve merge conflicts; ensure `.env` is gitignored.  
-2. **Phase 0 facilitation:** **Production DB locked — Option B:** **Render Web Service (PHP) + MySQL** — **preferred:** MySQL as Render **Private Service** (single provider). Chase: internal `DB_HOST` vs external endpoint, credentials in Render env, **`mysqldump`** backup habit, **one** connectivity/E2E test, `.env.example` placeholders.  
+2. **Phase 0 facilitation:** **Production DB locked — Option B:** **MySQL** with **local-first** dev (XAMPP). Chase: `DB_HOST` / `.env.local`, **`mysqldump`** backup habit, **one** connectivity test, `.env.example` placeholders; optional public deploy is **not** assumed.  
 3. **Integration story:** Own the **architecture / data-flow** sections of the PDF; keep `FLOWCHART.md` aligned with reality.  
-4. **Phase 4 (DevOps):** **GitHub Actions** workflow; **Render** service + secrets; **Dockerfile** review (implement or pair with Member 4).  
+4. **Phase 4 (DevOps):** **GitHub Actions** workflow; document **local run** + optional deploy env/secrets if the group hosts publicly.  
 5. **Phase 5:** Merge sections into **final PDF** per `SIA2-DOCU.MD`; **Canvas** submission; **presentation** structure and timekeeping.  
 6. **Weekly sync:** 30 min — status vs roadmap checkboxes, blockers, next-week owners.
 
@@ -41,7 +41,7 @@ Fill in **Member 2–4** names. **Group Leader** = you (GitHub / repo owner).
 **Name:** _____________________  
 
 1. **ERD v1** (draw + export for PDF): barangay, `users` + role, `residents` (**`UNIQUE(barangay_id,email)`**), permits, payments, `integration_events`, optional notification log; note legacy `patient` / `medsupply` + optional `patient.resident_id`.  
-2. **Production MySQL (Option B):** Help provision **MySQL** — **Render Private Service** (preferred) or external managed host; import **`mimds.sql`** + new migrations; document **`.env.example`** placeholders (no secrets); confirm **Web Service → DB** connectivity with Leader.  
+2. **Production MySQL (Option B):** Help provision **MySQL** (local XAMPP or chosen host); import **`mimds.sql`** + new migrations; document **`.env.example`** placeholders (no secrets); confirm **app → DB** connectivity with Leader.  
 3. **SQL / migrations:** Create/alter scripts for new tables + `users.role`; seed **admin** + **permit_types** (Barangay Clearance).  
 4. **Align with** `RESIDENT_ROADMAP.md` (frozen rules: admin-only archive/bar change, staff submit → admin approve).  
 5. **Support** Member 3 & 4 with **column names**, FKs, and test data dumps (no real PII in repo).  
@@ -69,7 +69,7 @@ Fill in **Member 2–4** names. **Group Leader** = you (GitHub / repo owner).
 2. **JWT:** Claims include `sub` / `role`; middleware on protected routes.  
 3. **Postman:** Collection + environment (`base_url`, `token`); export for repo / PDF screenshots.  
 4. **Phase 3:** Mock payment flow, **`integration_events` insert**, **worker/cron** sketch, **SMTP** send using `residents.email`.  
-5. **Support Leader:** **Dockerfile** health check route, app entrypoint if needed; **Newman** or **PHPUnit** for CI.
+5. **Support Leader:** **`health.php`** for sanity checks if needed; **Newman** or **PHPUnit** for CI.
 
 ---
 
@@ -101,7 +101,7 @@ Fill in **Member 2–4** names. **Group Leader** = you (GitHub / repo owner).
 - [ ] Postman proves **login + 5 verbs +** core permit path  
 - [ ] At least one **email** sent via outbox/worker path (screenshot)  
 - [ ] **CI** green on `main`  
-- [ ] **Render** (or documented fallback) runnable with env template  
+- [ ] **Runnable prototype** (local + env template) or documented **source** submission per Canvas  
 - [ ] **PDF** complete per `SIA2-DOCU.MD`
 
 ---
