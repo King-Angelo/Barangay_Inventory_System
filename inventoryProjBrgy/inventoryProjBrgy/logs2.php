@@ -1,6 +1,6 @@
 <?php
 require_once 'require_auth.php';
-include 'dbcon.php';
+include __DIR__ . '/dbcon.php';
 include 'actions.php';
 $id2=$_GET['id'];
 $q=mysqli_query($con,"SELECT * FROM logs WHERE itemcode='$id2'");

@@ -4,7 +4,7 @@ inv_session_start();
 
 $login_error = '';
 if (isset($_POST['btn-send'])) {
-	include 'dbcon.php';
+	include __DIR__ . '/dbcon.php';
 	$user = trim((string)($_POST['user'] ?? ''));
 	$pass = (string)($_POST['pass'] ?? '');
 	$esc = mysqli_real_escape_string($con, $user);

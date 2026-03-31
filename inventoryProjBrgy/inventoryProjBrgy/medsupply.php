@@ -1,5 +1,5 @@
 <?php
-include ('dbcon.php');
+include __DIR__ . '/dbcon.php';
 function getsupply(){
 $s=mysqli_query($con,"SELECT * FROM medsupply");
 

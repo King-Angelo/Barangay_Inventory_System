@@ -1,5 +1,5 @@
 <?php 
-include 'dbcon.php';
+include __DIR__ . '/dbcon.php';
 $n=1;
 $q3=mysqli_query($con,"SELECT * FROM rhusupply WHERE itemcode='$n'");
 $r=mysqli_fetch_assoc($q3);
@@ -12,7 +12,7 @@ else{
 
 
 
-// include 'dbcon.php';
+// include __DIR__ . '/dbcon.php';
 // $quantity=1;
 // $iname="biogesic";
 // $a=mysqli_query($con, "SELECT * FROM medsupply WHERE iname ='$iname'");
@@ -28,7 +28,7 @@ else{
 //     echo 1;
 //     }
 
-// include 'dbcon.php';
+// include __DIR__ . '/dbcon.php';
 // include 'head.php';
 // if (isset($_POST['btn-send'])){
 // $usr=$_POST['User'];

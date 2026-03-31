@@ -1,7 +1,7 @@
 <?php
 require_once 'require_auth.php';
 include 'actions.php';
-include 'dbcon.php';
+include __DIR__ . '/dbcon.php';
 
 $usr=$_SESSION['user'];
 $q=mysqli_query($con,"SELECT * FROM users WHERE UserName='$usr'");

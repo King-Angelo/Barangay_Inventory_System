@@ -2,7 +2,7 @@
 
 $id=$_GET['id'];
 
-include 'dbcon.php';
+include __DIR__ . '/dbcon.php';
 
 $q=mysqli_query($con,"SELECT * FROM supply2 WHERE beneficiary='$id'");
 

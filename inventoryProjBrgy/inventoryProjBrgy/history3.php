@@ -1,7 +1,7 @@
 <?php
 require_once 'require_auth.php';
 include 'actions.php';
-include 'dbcon.php';
+include __DIR__ . '/dbcon.php';
  
  
 if(!isset($_GET['id'])){

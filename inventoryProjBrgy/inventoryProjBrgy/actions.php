@@ -1,7 +1,7 @@
 <?php
 
 function addItem(){
-    include ('dbcon.php');
+    include __DIR__ . '/dbcon.php';
         if (isset($_POST['btn-send'])){
             $iname=$_POST['iname'];
             $category=$_POST['category'];
@@ -23,7 +23,7 @@ function addItem(){
     }
     
 function addPatient(){
-include ('dbcon.php');
+include __DIR__ . '/dbcon.php';
     if (isset($_POST['btn-send'])){
         $fname=$_POST['fname'];
         $lname=$_POST['lname'];
@@ -49,7 +49,7 @@ else
 }
 
 function barangay(){
-    include ('dbcon.php');
+    include __DIR__ . '/dbcon.php';
 $s=mysqli_query($con,"SELECT * FROM barangays");
 if ($s === false) {
     return;
@@ -63,7 +63,7 @@ while($row=mysqli_fetch_assoc($s)){
 
 
 function barangay2(){
-    include ('dbcon.php');
+    include __DIR__ . '/dbcon.php';
 $s=mysqli_query($con,"SELECT * FROM barangays");
 if ($s === false) {
     return;
@@ -79,7 +79,7 @@ while($row=mysqli_fetch_assoc($s)){
 
 
 function changeuser($uss){
-    include 'dbcon.php';
+    include __DIR__ . '/dbcon.php';
     
     if (isset($_POST['btn-send'])){
         $user=$_SESSION['user'];
@@ -95,7 +95,7 @@ function changeuser($uss){
 
 
 function getLogs(){
-    include ('dbcon.php');
+    include __DIR__ . '/dbcon.php';
     $s=mysqli_query($con,"SELECT * FROM logs");
     
     while($row=mysqli_fetch_assoc($s)){
@@ -106,7 +106,7 @@ function getLogs(){
     }
 
 function getsupply(){
-    include 'dbcon.php';
+    include __DIR__ . '/dbcon.php';
 $s=mysqli_query($con,"SELECT * FROM medsupply");
 
 while($row=mysqli_fetch_assoc($s)){
@@ -116,7 +116,7 @@ while($row=mysqli_fetch_assoc($s)){
 };
 }
 function getusers(){
-    include ('dbcon.php');
+    include __DIR__ . '/dbcon.php';
 $s=mysqli_query($con,"SELECT * FROM users");
 
 while($row=mysqli_fetch_assoc($s)){
@@ -126,7 +126,7 @@ while($row=mysqli_fetch_assoc($s)){
 }
 
 function inventory(){
-    include ('dbcon.php');
+    include __DIR__ . '/dbcon.php';
     
 $s=mysqli_query($con,"SELECT * FROM medsupply");
 
@@ -145,7 +145,7 @@ while($row=mysqli_fetch_assoc($s)){
 
 
 function inventory2($id){
-    include ('dbcon.php');
+    include __DIR__ . '/dbcon.php';
     
 $s=mysqli_query($con,"SELECT * FROM rhusupply");
 
@@ -167,7 +167,7 @@ while($row=mysqli_fetch_assoc($s)){
 
 
 function inventorylog(){
-    include ('dbcon.php');
+    include __DIR__ . '/dbcon.php';
     
 $s=mysqli_query($con,"SELECT * FROM medsupply");
 
@@ -186,7 +186,7 @@ while($row=mysqli_fetch_assoc($s)){
 
 
 function logs(){
-    include ('dbcon.php');
+    include __DIR__ . '/dbcon.php';
     
 $s=mysqli_query($con,"SELECT * FROM logs");
 
@@ -200,7 +200,7 @@ while($row=mysqli_fetch_assoc($s)){
 }
 
 function logs2($id){
-    include ('dbcon.php');
+    include __DIR__ . '/dbcon.php';
     
 $s=mysqli_query($con,"SELECT * FROM logs WHERE itemname='$id'");
 
@@ -214,7 +214,7 @@ while($row=mysqli_fetch_assoc($s)){
 }
 
 function medlog($item,$n,$expdate,$category){
-    include 'dbcon.php';
+    include __DIR__ . '/dbcon.php';
     if (isset($_POST['btn-send'])){
         $iname=$_POST['iname'];
         $quantity=$_POST['quantity'];
@@ -252,7 +252,7 @@ function medlog($item,$n,$expdate,$category){
 }}
 
 function patient($loc){
-    include ('dbcon.php');
+    include __DIR__ . '/dbcon.php';
     
 $s=mysqli_query($con,"SELECT * FROM patient WHERE brgy='$loc'");
 
@@ -266,7 +266,7 @@ while($row=mysqli_fetch_assoc($s)){
 }
 
 function patient2($loc){
-    include ('dbcon.php');
+    include __DIR__ . '/dbcon.php';
     
 $s=mysqli_query($con,"SELECT * FROM patient WHERE brgy='$loc'");
 
@@ -281,7 +281,7 @@ while($row=mysqli_fetch_assoc($s)){
 
 
 function patient3($loc){
-    include ('dbcon.php');
+    include __DIR__ . '/dbcon.php';
     $s1=mysqli_query($con,"SELECT * FROM released");
     
     while($r=mysqli_fetch_assoc($s1)){
@@ -300,7 +300,7 @@ $row=mysqli_fetch_assoc($s);
 
 
 function release($id){
-    include 'dbcon.php';
+    include __DIR__ . '/dbcon.php';
     $q=mysqli_query($con,"SELECT * FROM supply2 WHERE beneficiary='$id'");
     
     
