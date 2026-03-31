@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/require_auth.php';
 include __DIR__ . '/dbcon.php';
-include __DIR__ . '/actions.php';
+require_once __DIR__ . '/barangay_funcs.php';
 ?><!DOCTYPE html>
 <html>
 <?php include __DIR__ . '/head.php'; ?>

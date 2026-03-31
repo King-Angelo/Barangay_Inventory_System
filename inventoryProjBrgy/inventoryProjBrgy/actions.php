@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/barangay_funcs.php';
+
 function addItem(){
     include __DIR__ . '/dbcon.php';
         if (isset($_POST['btn-send'])){
@@ -47,42 +49,6 @@ else
 }
  }
 }
-
-function barangay(){
-    include __DIR__ . '/dbcon.php';
-$s=mysqli_query($con,"SELECT * FROM barangays");
-if ($s === false) {
-    return;
-}
-
-while ($row = mysqli_fetch_assoc($s)) {
-	if (!isset($row['brgy'])) {
-		continue;
-	}
-	$x = (string) $row['brgy'];
-	echo "<tr><td><a href='patients.php?loc=" . htmlspecialchars($x, ENT_QUOTES, 'UTF-8') . "'>" . htmlspecialchars($x, ENT_QUOTES, 'UTF-8') . "</a><br></td></tr>";
-}
-}
-
-
-function barangay2(){
-    include __DIR__ . '/dbcon.php';
-$s=mysqli_query($con,"SELECT * FROM barangays");
-if ($s === false) {
-    return;
-}
-
-while ($row = mysqli_fetch_assoc($s)) {
-	if (!isset($row['brgy'])) {
-		continue;
-	}
-	$x = (string) $row['brgy'];
-	echo "<tr><td><a href='history4.php?loc=" . htmlspecialchars($x, ENT_QUOTES, 'UTF-8') . "'>" . htmlspecialchars($x, ENT_QUOTES, 'UTF-8') . "</a><br></td></tr>";
-}
-}
-
-
-
 
 function changeuser($uss){
     include __DIR__ . '/dbcon.php';
