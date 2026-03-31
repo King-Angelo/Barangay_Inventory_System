@@ -51,6 +51,9 @@ else
 function barangay(){
     include ('dbcon.php');
 $s=mysqli_query($con,"SELECT * FROM barangays");
+if ($s === false) {
+    return;
+}
 
 while($row=mysqli_fetch_assoc($s)){
     $x=$row['brgy'];
@@ -62,6 +65,9 @@ while($row=mysqli_fetch_assoc($s)){
 function barangay2(){
     include ('dbcon.php');
 $s=mysqli_query($con,"SELECT * FROM barangays");
+if ($s === false) {
+    return;
+}
 
 while($row=mysqli_fetch_assoc($s)){
     $x=$row['brgy'];
