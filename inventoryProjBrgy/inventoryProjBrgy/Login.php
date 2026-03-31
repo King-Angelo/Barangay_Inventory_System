@@ -16,7 +16,7 @@ if (isset($_POST['btn-send'])) {
 		$r = mysqli_fetch_assoc($q);
 		if (is_array($r) && (string) $r['PaSS'] === $pass) {
 			$_SESSION['user'] = $user;
-			header('Location: brgy.php', true, 302);
+			header('Location: /brgy.php', true, 302);
 			exit;
 		}
 		$login_error = 'Invalid username or password.';
@@ -28,9 +28,9 @@ if (isset($_POST['btn-send'])) {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Untitled</title>
-    <link rel="stylesheet" href="assets2/bootstrap/css/bootstrap.min.css">
-    <link rel="stylesheet" href="assets2/css/styles.css">
-    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="stylesheet" href="/assets2/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/assets2/css/styles.css">
+    <link rel="stylesheet" href="/styles/main.css">
 </head>
 
 <body>  
@@ -48,9 +48,9 @@ if (isset($_POST['btn-send'])) {
             <input class="form-control" type="text" name="pass">
             <button type="submit" class="btn btn-default" name="btn-send">Login </button>
         </form>
-    </div><img src="assets/img/doh_logo.png">
-    <script src="assets/js/jquery.min.js"></script>
-    <script src="assets/bootstrap/js/bootstrap.min.js"></script>
+    </div><img src="/assets/img/doh_logo.png" alt="" width="120" height="120" onerror="this.style.display='none'">
+    <script src="/assets/js/jquery.min.js"></script>
+    <script src="/assets/bootstrap/js/bootstrap.min.js"></script>
 </body>
 
 </html>
