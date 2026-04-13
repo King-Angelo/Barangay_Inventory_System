@@ -1,5 +1,6 @@
 <?php
-require_once __DIR__ . '/require_auth.php';
+// Task 2: admin-only
+require_once __DIR__ . '/require_admin.php';
 include __DIR__ . '/actions.php';
 include __DIR__ . '/dbcon.php';
 

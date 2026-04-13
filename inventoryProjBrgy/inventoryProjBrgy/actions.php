@@ -284,3 +284,216 @@ function release($id){
     }
     
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Task 3 — Resident & Permit functions (Member 3)
+// Compatible with PHP 7.0+  (no arrow functions)
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * List residents for a barangay. Admin can include archived.
+ */
+function list_residents($barangay_id, $include_archived = false) {
+    include __DIR__ . '/dbcon.php';
+    $bid = (int)$barangay_id;
+    $status_clause = $include_archived ? '' : "AND r.status = 'active'";
+    $sql = "SELECT r.*, b.brgy AS barangay_name
+            FROM residents r
+            LEFT JOIN barangays b ON b.n = r.barangay_id
+            WHERE r.barangay_id = $bid
+            $status_clause
+            ORDER BY r.last_name, r.first_name";
+    $result = mysqli_query($con, $sql);
+    $rows = array();
+    if ($result) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $rows[] = $row;
+        }
+    }
+    return $rows;
+}
+
+/**
+ * Fetch a single resident by ID.
+ */
+function get_resident($id) {
+    include __DIR__ . '/dbcon.php';
+    $id = (int)$id;
+    $q = mysqli_query($con, "SELECT * FROM residents WHERE id = $id");
+    return ($q && mysqli_num_rows($q) > 0) ? mysqli_fetch_assoc($q) : null;
+}
+
+/**
+ * Create a new resident. Returns new ID or 0 on failure.
+ */
+function create_resident($d, $created_by) {
+    include __DIR__ . '/dbcon.php';
+    $created_by = (int)$created_by;
+    $bid   = (int)$d['barangay_id'];
+    $lname = mysqli_real_escape_string($con, (string)($d['last_name']    ?? ''));
+    $fname = mysqli_real_escape_string($con, (string)($d['first_name']   ?? ''));
+    $mname = mysqli_real_escape_string($con, (string)($d['middle_name']  ?? ''));
+    $email = mysqli_real_escape_string($con, (string)($d['email']        ?? ''));
+    $phone = mysqli_real_escape_string($con, (string)($d['phone']        ?? ''));
+    $bday  = mysqli_real_escape_string($con, (string)($d['birthdate']    ?? ''));
+    $gend  = mysqli_real_escape_string($con, (string)($d['gender']       ?? ''));
+    $addr  = mysqli_real_escape_string($con, (string)($d['address_line'] ?? ''));
+    $sql = "INSERT INTO residents
+              (barangay_id, last_name, first_name, middle_name, email, phone,
+               birthdate, gender, address_line, status, created_by_user_id)
+            VALUES ($bid,'$lname','$fname','$mname','$email','$phone',
+                    '$bday','$gend','$addr','active',$created_by)";
+    if (mysqli_query($con, $sql)) {
+        return (int)mysqli_insert_id($con);
+    }
+    return 0;
+}
+
+/**
+ * Update an existing resident. Returns true on success.
+ */
+function update_resident($id, $d) {
+    include __DIR__ . '/dbcon.php';
+    $id    = (int)$id;
+    $lname = mysqli_real_escape_string($con, (string)($d['last_name']    ?? ''));
+    $fname = mysqli_real_escape_string($con, (string)($d['first_name']   ?? ''));
+    $mname = mysqli_real_escape_string($con, (string)($d['middle_name']  ?? ''));
+    $email = mysqli_real_escape_string($con, (string)($d['email']        ?? ''));
+    $phone = mysqli_real_escape_string($con, (string)($d['phone']        ?? ''));
+    $bday  = mysqli_real_escape_string($con, (string)($d['birthdate']    ?? ''));
+    $gend  = mysqli_real_escape_string($con, (string)($d['gender']       ?? ''));
+    $addr  = mysqli_real_escape_string($con, (string)($d['address_line'] ?? ''));
+    $sql = "UPDATE residents SET
+              last_name='$lname', first_name='$fname', middle_name='$mname',
+              email='$email', phone='$phone', birthdate='$bday',
+              gender='$gend', address_line='$addr'
+            WHERE id=$id";
+    return (bool)mysqli_query($con, $sql);
+}
+
+/**
+ * Archive a resident — admin only. Sets status = 'archived'.
+ */
+function archive_resident($id) {
+    include __DIR__ . '/dbcon.php';
+    $id = (int)$id;
+    return (bool)mysqli_query($con, "UPDATE residents SET status='archived' WHERE id=$id");
+}
+
+/**
+ * List permits, optionally filtered by resident.
+ */
+function list_permits($resident_id = null) {
+    include __DIR__ . '/dbcon.php';
+    $where = ($resident_id !== null) ? 'WHERE p.resident_id = ' . (int)$resident_id : '';
+    $sql = "SELECT p.*,
+                   r.last_name, r.first_name,
+                   pt.name AS permit_type_name,
+                   su.UserName AS submitted_by_name,
+                   au.UserName AS approved_by_name
+            FROM permits p
+            JOIN residents r    ON r.id  = p.resident_id
+            JOIN permit_types pt ON pt.id = p.permit_type_id
+            LEFT JOIN users su  ON su.id  = p.submitted_by
+            LEFT JOIN users au  ON au.id  = p.approved_by
+            $where
+            ORDER BY p.updated_at DESC";
+    $result = mysqli_query($con, $sql);
+    $rows = array();
+    if ($result) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $rows[] = $row;
+        }
+    }
+    return $rows;
+}
+
+/**
+ * Fetch a single permit by ID.
+ */
+function get_permit($id) {
+    include __DIR__ . '/dbcon.php';
+    $id = (int)$id;
+    $sql = "SELECT p.*, r.last_name, r.first_name, pt.name AS permit_type_name
+            FROM permits p
+            JOIN residents r    ON r.id  = p.resident_id
+            JOIN permit_types pt ON pt.id = p.permit_type_id
+            WHERE p.id = $id";
+    $q = mysqli_query($con, $sql);
+    return ($q && mysqli_num_rows($q) > 0) ? mysqli_fetch_assoc($q) : null;
+}
+
+/**
+ * Create a permit in 'draft' status. Returns new ID or 0.
+ */
+function create_permit($resident_id, $permit_type_id, $user_id) {
+    include __DIR__ . '/dbcon.php';
+    $rid  = (int)$resident_id;
+    $ptid = (int)$permit_type_id;
+    $uid  = (int)$user_id;
+    $ref  = 'REF-' . strtoupper(substr(md5(uniqid('', true)), 0, 8));
+    $sql  = "INSERT INTO permits (resident_id, permit_type_id, reference_no, status, submitted_by)
+             VALUES ($rid, $ptid, '$ref', 'draft', $uid)";
+    return mysqli_query($con, $sql) ? (int)mysqli_insert_id($con) : 0;
+}
+
+/**
+ * Staff: move draft → submitted.
+ */
+function submit_permit($permit_id, $user_id) {
+    include __DIR__ . '/dbcon.php';
+    $pid = (int)$permit_id;
+    $uid = (int)$user_id;
+    $ok  = mysqli_query($con,
+        "UPDATE permits SET status='submitted', submitted_by=$uid, submitted_at=NOW()
+         WHERE id=$pid AND status='draft'");
+    return $ok && mysqli_affected_rows($con) > 0;
+}
+
+/**
+ * Admin: approve or reject a submitted permit.
+ * $action must be 'approved' or 'rejected'.
+ */
+function decide_permit($permit_id, $admin_id, $action, $remarks = '') {
+    include __DIR__ . '/dbcon.php';
+    $pid     = (int)$permit_id;
+    $aid     = (int)$admin_id;
+    $action  = ($action === 'approved') ? 'approved' : 'rejected';
+    $remarks = mysqli_real_escape_string($con, (string)$remarks);
+    $ok = mysqli_query($con,
+        "UPDATE permits SET status='$action', approved_by=$aid, approved_at=NOW(), remarks='$remarks'
+         WHERE id=$pid AND status='submitted'");
+    return $ok && mysqli_affected_rows($con) > 0;
+}
+
+/**
+ * Get all active permit types.
+ */
+function get_permit_types() {
+    include __DIR__ . '/dbcon.php';
+    $q    = mysqli_query($con, "SELECT * FROM permit_types WHERE is_active=1 ORDER BY name");
+    $rows = array();
+    if ($q) {
+        while ($row = mysqli_fetch_assoc($q)) {
+            $rows[] = $row;
+        }
+    }
+    return $rows;
+}
+
+/**
+ * Get all barangays for dropdowns.
+ */
+function get_barangays() {
+    include __DIR__ . '/dbcon.php';
+    $q    = mysqli_query($con, "SELECT n, brgy FROM barangays ORDER BY brgy");
+    $rows = array();
+    if ($q) {
+        while ($row = mysqli_fetch_assoc($q)) {
+            $rows[] = $row;
+        }
+    }
+    return $rows;
+}
