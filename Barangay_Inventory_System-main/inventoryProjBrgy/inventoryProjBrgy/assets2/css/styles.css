@@ -1,0 +1,24 @@
+div{
+  left:700px;
+  width:250px;
+  position:absolute;
+}
+
+img{
+  width:450px;
+  left:100px;
+  position:absolute;
+}
+
+body{
+  background-color:#434040;
+}
+
+p{
+  color:#fff;
+}
+
+p#head.text-center{
+  font-size:42px;
+}
+

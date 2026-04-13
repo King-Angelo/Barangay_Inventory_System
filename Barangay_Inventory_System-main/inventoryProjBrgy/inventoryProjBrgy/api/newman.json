@@ -1,0 +1,19 @@
+{
+  "info": {
+    "name": "Barangay Inventory API - Newman CI Runner",
+    "description": "Newman configuration for running Postman collection tests in CI/CD pipeline"
+  },
+  "collection": "postman_collection.json",
+  "environment": "postman_environment.json",
+  "reporters": ["cli", "json"],
+  "reporter": {
+    "json": {
+      "export": "./test-results.json"
+    }
+  },
+  "iterationCount": 1,
+  "delayRequest": 100,
+  "timeout": 5000,
+  "timeoutRequest": 5000,
+  "timeoutScript": 5000
+}

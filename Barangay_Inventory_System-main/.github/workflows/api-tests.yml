@@ -1,0 +1,111 @@
+name: API Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'inventoryProjBrgy/inventoryProjBrgy/api/**'
+      - 'inventoryProjBrgy/inventoryProjBrgy/tests/**'
+      - 'inventoryProjBrgy/inventoryProjBrgy/composer.json'
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_DATABASE: mimds
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_PASSWORD: root
+          MYSQL_USER: testuser
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+        ports:
+          - 3306:3306
+
+    strategy:
+      matrix:
+        php-version: ['8.1', '8.2']
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: mysqli, json, curl
+          tools: composer, phpunit
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer packages
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: |
+          cd inventoryProjBrgy/inventoryProjBrgy
+          composer install --prefer-dist --no-progress
+
+      - name: Import database
+        run: |
+          mysql -h localhost -u root -proot < mimds.sql
+
+      - name: Create .env.local
+        run: |
+          cd inventoryProjBrgy/inventoryProjBrgy/api
+          cat > .env.local << EOF
+          DB_HOST=127.0.0.1
+          DB_USER=root
+          DB_PASS=root
+          DB_NAME=mimds
+          JWT_SECRET=${{ secrets.JWT_SECRET || 'test-secret-key' }}
+          ADMIN_USERS=Cj233
+          SMTP_HOST=localhost
+          SMTP_PORT=1025
+          SMTP_USER=test
+          SMTP_PASS=test
+          EMAIL_FROM=system@barangay.local
+          EOF
+
+      - name: Run PHPUnit tests
+        run: |
+          cd inventoryProjBrgy/inventoryProjBrgy
+          vendor/bin/phpunit --coverage-text
+
+      - name: Setup Node.js for Newman
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Newman
+        run: npm install -g newman
+
+      - name: Run Postman Collection with Newman
+        run: |
+          cd inventoryProjBrgy/inventoryProjBrgy
+          newman run api/postman_collection.json \
+            -e api/postman_environment.json \
+            --reporters cli,json \
+            --reporter-json-export test-results.json
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results-php${{ matrix.php-version }}
+          path: inventoryProjBrgy/inventoryProjBrgy/test-results.json
