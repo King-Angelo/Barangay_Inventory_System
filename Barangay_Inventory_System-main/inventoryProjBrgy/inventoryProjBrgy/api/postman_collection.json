@@ -1,0 +1,420 @@
+{
+  "info": {
+    "name": "Barangay Inventory API",
+    "_postman_id": "0d5e3a0f-2f8a-4bfe-b845-d2f2c51cf0db",
+    "description": "JWT login and residents CRUD endpoints for the Barangay Inventory System.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"Cj233\",\n  \"password\": \"Cj23\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/index.php/auth/login",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "index.php",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Residents",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/index.php/v1/residents",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "index.php",
+            "v1",
+            "residents"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Resident",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"first_name\": \"Juan\",\n  \"last_name\": \"Dela Cruz\",\n  \"barangay_id\": 1,\n  \"email\": \"juan.delacruz@example.com\",\n  \"status\": \"active\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/index.php/v1/residents",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "index.php",
+            "v1",
+            "residents"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Resident by ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/index.php/v1/residents/{{resident_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "index.php",
+            "v1",
+            "residents",
+            "{{resident_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Resident",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"first_name\": \"Juan\",\n  \"last_name\": \"Dela Cruz\",\n  \"barangay_id\": 1,\n  \"email\": \"juan.updated@example.com\",\n  \"status\": \"active\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/index.php/v1/residents/{{resident_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "index.php",
+            "v1",
+            "residents",
+            "{{resident_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Patch Resident",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"archived\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/index.php/v1/residents/{{resident_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "index.php",
+            "v1",
+            "residents",
+            "{{resident_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Permits",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/index.php/v1/permits",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "index.php",
+            "v1",
+            "permits"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Permit",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"resident_id\": {{resident_id}},\n  \"permit_type_id\": 1,\n  \"amount\": 0.00\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/index.php/v1/permits",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "index.php",
+            "v1",
+            "permits"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Permit by ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/index.php/v1/permits/{{permit_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "index.php",
+            "v1",
+            "permits",
+            "{{permit_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Permit",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"resident_id\": {{resident_id}},\n  \"permit_type_id\": 1,\n  \"status\": \"submitted\",\n  \"amount\": 0.00\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/index.php/v1/permits/{{permit_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "index.php",
+            "v1",
+            "permits",
+            "{{permit_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Patch Permit",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"submitted\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/index.php/v1/permits/{{permit_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "index.php",
+            "v1",
+            "permits",
+            "{{permit_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Permit",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/index.php/v1/permits/{{permit_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "index.php",
+            "v1",
+            "permits",
+            "{{permit_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Integration Events",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/index.php/v1/integration-events",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "index.php",
+            "v1",
+            "integration-events"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Process Integration Events",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/index.php/v1/integration-events/process",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "index.php",
+            "v1",
+            "integration-events",
+            "process"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

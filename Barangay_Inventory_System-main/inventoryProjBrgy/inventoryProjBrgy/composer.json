@@ -1,0 +1,1 @@
+{"name":"barangay-inventory-system/api","description":"API backend for Barangay Inventory System","type":"project","require":{"php":"^8.0","firebase/php-jwt":"^6.8"}}
