@@ -92,6 +92,12 @@ WHERE `UserName` = 'admin';
 
 ---
 
+## 4b. Optional: migrate plaintext `users.PaSS` to bcrypt
+
+After migration **001**, see **`migrations/PASSWORD_MIGRATION.md`** and run **`tools/migrate_passwords_to_bcrypt.php`** (dry-run first, then `--apply`). Keeps login working via **`Login.php`** / JWT while removing reliance on plaintext.
+
+---
+
 ## 5. Configure .env.local
 
 Copy the **template** (placeholders only — safe to commit) to your local override file:

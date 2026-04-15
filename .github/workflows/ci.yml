@@ -23,10 +23,10 @@ jobs:
       - name: Composer install
         run: composer install --no-interaction --prefer-dist
 
-      - name: PHP syntax check (api, worker, src)
+      - name: PHP syntax check (api, worker, src, tools)
         run: |
           set -e
-          for f in $(find api worker src -name '*.php' 2>/dev/null); do
+          for f in $(find api worker src tools -name '*.php' 2>/dev/null); do
             php -l "$f"
           done
 

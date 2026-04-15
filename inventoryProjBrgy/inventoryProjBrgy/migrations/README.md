@@ -48,6 +48,10 @@ See **`SEEDS.md`** (what is seeded, dev passwords, how to rotate `password_hash`
 
 See **`LEGACY_AND_RESIDENTS.md`** (`patient` / `medsupply` vs `residents` / `permits`, optional **`patient.resident_id`** from migration **006**).
 
+## Password security baseline (plaintext → bcrypt)
+
+See **`PASSWORD_MIGRATION.md`**. CLI: **`tools/migrate_passwords_to_bcrypt.php`** (run after migration **001**).
+
 ## Env template (no secrets)
 
 Canonical template: **`../.env.example`** (i.e. `inventoryProjBrgy/inventoryProjBrgy/.env.example`). Copy to **`.env.local`** in that directory. The file `migrations/env.example` here is only a pointer. See **`PRODUCTION_SETUP.md`** §5.
