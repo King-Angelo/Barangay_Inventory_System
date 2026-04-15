@@ -1,0 +1,170 @@
+{
+	"info": {
+		"name": "Barangay Inventory API",
+		"description": "JWT auth + residents + permits. Run `php -S 127.0.0.1:8765 dev-router.php` from inventoryProjBrgy/inventoryProjBrgy. Set {{base_url}} and run **Auth / Login** first; token saves to collection variable.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{ "key": "base_url", "value": "http://127.0.0.1:8765/api" },
+		{ "key": "token", "value": "" }
+	],
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{base_url}}/v1/auth/health"
+					}
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var json = pm.response.json();",
+									"if (json.access_token) {",
+									"  pm.collectionVariables.set('token', json.access_token);",
+									"  pm.environment.set('token', json.access_token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"admin\",\n  \"password\": \"ChangeMe2026!\"\n}"
+						},
+						"url": "{{base_url}}/v1/auth/login"
+					}
+				}
+			]
+		},
+		{
+			"name": "Residents",
+			"item": [
+				{
+					"name": "List",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+						"url": "{{base_url}}/v1/residents?barangay_id=1"
+					}
+				},
+				{
+					"name": "Get by id",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+						"url": "{{base_url}}/v1/residents/1"
+					}
+				},
+				{
+					"name": "Create",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"barangay_id\": 1,\n  \"last_name\": \"Dela Cruz\",\n  \"first_name\": \"Juan\",\n  \"middle_name\": \"\",\n  \"email\": \"juan.dc.example@local.test\",\n  \"phone\": \"\",\n  \"birthdate\": \"\",\n  \"gender\": \"\",\n  \"address_line\": \"\"\n}"
+						},
+						"url": "{{base_url}}/v1/residents"
+					}
+				},
+				{
+					"name": "Patch",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"phone\": \"09171234567\"\n}"
+						},
+						"url": "{{base_url}}/v1/residents/1"
+					}
+				}
+			]
+		},
+		{
+			"name": "Permits",
+			"item": [
+				{
+					"name": "List",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+						"url": "{{base_url}}/v1/permits"
+					}
+				},
+				{
+					"name": "Get by id",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+						"url": "{{base_url}}/v1/permits/1"
+					}
+				},
+				{
+					"name": "Create draft",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"resident_id\": 1,\n  \"permit_type_id\": 1\n}"
+						},
+						"url": "{{base_url}}/v1/permits"
+					}
+				},
+				{
+					"name": "Submit",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"action\": \"submit\"\n}"
+						},
+						"url": "{{base_url}}/v1/permits/1"
+					}
+				},
+				{
+					"name": "Approve (admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"action\": \"approve\",\n  \"remarks\": \"OK\"\n}"
+						},
+						"url": "{{base_url}}/v1/permits/1"
+					}
+				}
+			]
+		}
+	]
+}
