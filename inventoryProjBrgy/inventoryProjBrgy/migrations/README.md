@@ -54,5 +54,7 @@ Canonical template: **`../.env.example`** (i.e. `inventoryProjBrgy/inventoryProj
 
 ## Support for other devs (repo)
 
-- **`DEV_REFERENCE.md`** — column names, FKs, seeded test users/resident, links to Postman and env.
-- **`optional_sample_permit.sql`** — optional **draft** permit `DEV-REF-SAMPLE-001` for the demo resident (run after **007**) if you want a row without using the API first.
+- **`DEV_REFERENCE.md`** — column names, FKs, **REST JSON ↔ DB**, seeded test users/resident, Postman/env links.
+- **`SANITIZED_DATA.md`** — which SQL scripts are safe to commit; what never to commit.
+- **`optional_sample_permit.sql`** — optional **draft** permit `DEV-REF-SAMPLE-001` for the demo resident (run after **007**).
+- **`../README.md`** — short index for Member 3 / Member 4.

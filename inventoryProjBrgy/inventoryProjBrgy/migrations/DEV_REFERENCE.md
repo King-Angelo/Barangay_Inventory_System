@@ -98,16 +98,42 @@ integration_events (id)
 | `payload` | JSON | Must include `resident_id`, `permit_id` for mailer |
 | `status` | ENUM | `pending` → `processing` → `processed` \| `failed` |
 
+## REST API (`api/index.php`) — JSON ↔ DB
+
+Base path depends on host (e.g. `http://127.0.0.1:8765/api` with `dev-router.php`). All protected routes need **`Authorization: Bearer <jwt>`** from `POST /v1/auth/login`.
+
+### Residents
+
+| HTTP | Path | Query / body | DB alignment |
+|------|------|----------------|--------------|
+| GET | `/v1/residents` | `barangay_id`, optional `q`, `include_archived=1` (admin) | Lists `residents` for barangay; `q` searches `last_name`, `first_name`, `email`. Response includes `barangay_name` from join. |
+| GET | `/v1/residents/{id}` | — | Row from `residents` |
+| POST | `/v1/residents` | JSON: **`barangay_id`**, **`last_name`**, **`first_name`**, **`email`**; optional `middle_name`, `phone`, `birthdate`, `gender`, `address_line` | Same column names as table |
+| PATCH | `/v1/residents/{id}` | JSON: any of `last_name`, `first_name`, `middle_name`, `email`, `phone`, `birthdate`, `gender`, `address_line`; admin may add **`barangay_id`**, **`status`** (`active` \| `archived`) | Same as columns |
+
+### Permits
+
+| HTTP | Path | Query / body | DB alignment |
+|------|------|----------------|--------------|
+| GET | `/v1/permits` | optional `resident_id` | Filters `permits` |
+| GET | `/v1/permits/{id}` | — | Joined row incl. `permit_type_name`, resident names |
+| POST | `/v1/permits` | JSON: **`resident_id`**, **`permit_type_id`** | Creates `draft` |
+| PATCH | `/v1/permits/{id}` | JSON: **`action`**: `submit` \| `approve` \| `reject`; optional **`remarks`** | Updates `permits.status`, etc. |
+
+Login body: **`username`**, **`password`** → `users.UserName` + `password_hash`.
+
 ## Repo pointers
 
 | Artifact | Path |
 |----------|------|
 | Migrations order | `migrations/README.md` |
 | Seeds & passwords | `migrations/SEEDS.md` |
+| Sanitized data policy | `migrations/SANITIZED_DATA.md` |
 | Legacy vs `residents` | `migrations/LEGACY_AND_RESIDENTS.md` |
 | Env template | `inventoryProjBrgy/inventoryProjBrgy/.env.example` |
 | Postman | `postman/Barangay_Inventory_API.postman_collection.json` |
 | Optional draft permit row | `migrations/optional_sample_permit.sql` (run after **007**) |
+| App entry for devs | `inventoryProjBrgy/inventoryProjBrgy/README.md` |
 
 ## Optional sample permit
 
