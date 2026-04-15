@@ -43,7 +43,7 @@ DB_PASS=ChooseAStrongPassword!
 1. **Fresh full schema (simplest):** back up if needed, drop database `mimds`, create it again, import the **root** `mimds.sql` from the repo (it already includes residents, permits, migrations applied).
 2. **Upgrade an old database:** import **`migrations/apply_all_migrations.sql`** once (phpMyAdmin: select `mimds` → Import). Use this only if your DB still has the **legacy** `users` table (e.g. `UserName` as primary key) and none of the new tables. If you already have `users.id` and new tables, skip or run individual `00x_*.sql` files as needed.
 
-Run each file in sequence. In phpMyAdmin: select `mimds` → **Import** tab → choose file.
+Run each file in sequence (see **`migrations/README.md`** for order, idempotency, and optional `verify_schema.sql`). In phpMyAdmin: select `mimds` → **Import** tab → choose file.
 Via command line (XAMPP shell or Windows CMD):
 
 ```bash

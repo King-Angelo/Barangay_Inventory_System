@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS `residents` (
   COLLATE=utf8mb4_unicode_ci
   COMMENT='Master resident record. Admin-only archive. No hard delete in v1.';
 -- Migration 003: permit_types and permits
--- v1 permit type: Barangay Clearance only (seeded in 007_seed.sql)
+-- v1 permit type: Barangay Clearance only (seeded in 007_seeds.sql)
 -- Status flow: draft → submitted (staff) → approved/rejected (admin only)
 -- reference_no: unique, human-readable identifier for permit-ref search
 
@@ -308,6 +308,21 @@ VALUES (
 ON DUPLICATE KEY UPDATE
   `role`          = VALUES(`role`),
   `password_hash` = VALUES(`password_hash`);
+
+-- Demo staff user (barangay 1) for RBAC / API tests — same bcrypt as admin placeholder `ChangeMe2026!`
+-- Requires `barangays.n = 1` (included in base `mimds.sql`).
+INSERT INTO `users` (`UserName`, `PaSS`, `role`, `password_hash`, `barangay_id`)
+VALUES (
+  'staff_dev',
+  '',
+  'staff',
+  '$2y$10$6fjLU5olcVT0HQ3G5CgwHORL75efEzYN8r8jCvkrNn89mHnO4/7Km',
+  1
+)
+ON DUPLICATE KEY UPDATE
+  `role`          = VALUES(`role`),
+  `password_hash` = VALUES(`password_hash`),
+  `barangay_id`   = VALUES(`barangay_id`);
 
 -- Seed v1 permit type: Barangay Clearance
 INSERT INTO `permit_types` (`name`, `description`, `is_active`)
