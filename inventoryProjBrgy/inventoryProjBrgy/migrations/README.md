@@ -12,7 +12,7 @@ Run these **in order** on database **`mimds`** after importing the **legacy base
 | `004_payments.sql` | Mock `payments` (one row per permit when you implement pay flow). |
 | `005_integration_events_and_notification_log.sql` | Outbox + mail audit log. |
 | `006_patient_resident_link.sql` | Optional `patient.resident_id` → `residents.id`. |
-| `007_seeds.sql` | Admin + permit type seed; optional **`staff_dev`** for staff RBAC tests. |
+| `007_seeds.sql` | Admin, **`staff_dev`**, **Barangay Clearance** `permit_types`, optional demo resident; see **`SEEDS.md`**. |
 
 **All-in-one:** `apply_all_migrations.sql` concatenates `001`–`007` (use on a **fresh** DB or expect duplicate-object errors if tables already exist).
 
@@ -39,6 +39,10 @@ After migrations, run:
 ```bat
 mysql -u root -p mimds < migrations\verify_schema.sql
 ```
+
+## Seeds & bcrypt workflow
+
+See **`SEEDS.md`** (what is seeded, dev passwords, how to rotate `password_hash`).
 
 ## Env template
 
