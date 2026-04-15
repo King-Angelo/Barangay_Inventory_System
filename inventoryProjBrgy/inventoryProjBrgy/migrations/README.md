@@ -51,3 +51,8 @@ See **`LEGACY_AND_RESIDENTS.md`** (`patient` / `medsupply` vs `residents` / `per
 ## Env template (no secrets)
 
 Canonical template: **`../.env.example`** (i.e. `inventoryProjBrgy/inventoryProjBrgy/.env.example`). Copy to **`.env.local`** in that directory. The file `migrations/env.example` here is only a pointer. See **`PRODUCTION_SETUP.md`** §5.
+
+## Support for other devs (repo)
+
+- **`DEV_REFERENCE.md`** — column names, FKs, seeded test users/resident, links to Postman and env.
+- **`optional_sample_permit.sql`** — optional **draft** permit `DEV-REF-SAMPLE-001` for the demo resident (run after **007**) if you want a row without using the API first.
