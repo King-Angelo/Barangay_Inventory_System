@@ -48,6 +48,6 @@ See **`SEEDS.md`** (what is seeded, dev passwords, how to rotate `password_hash`
 
 See **`LEGACY_AND_RESIDENTS.md`** (`patient` / `medsupply` vs `residents` / `permits`, optional **`patient.resident_id`** from migration **006**).
 
-## Env template
+## Env template (no secrets)
 
-Copy `migrations/env.example` together with the app root `.env.example` into `inventoryProjBrgy/inventoryProjBrgy/.env.local` (see `PRODUCTION_SETUP.md`).
+Canonical template: **`../.env.example`** (i.e. `inventoryProjBrgy/inventoryProjBrgy/.env.example`). Copy to **`.env.local`** in that directory. The file `migrations/env.example` here is only a pointer. See **`PRODUCTION_SETUP.md`** §5.

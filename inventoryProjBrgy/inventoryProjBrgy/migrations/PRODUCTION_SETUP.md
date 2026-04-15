@@ -94,7 +94,14 @@ WHERE `UserName` = 'admin';
 
 ## 5. Configure .env.local
 
-Copy `.env.example` → `inventoryProjBrgy/inventoryProjBrgy/.env.local` and fill in real values:
+Copy the **template** (placeholders only — safe to commit) to your local override file:
+
+`inventoryProjBrgy/inventoryProjBrgy/.env.example` → `inventoryProjBrgy/inventoryProjBrgy/.env.local`
+
+Example from repo root (Windows):  
+`copy inventoryProjBrgy\inventoryProjBrgy\.env.example inventoryProjBrgy\inventoryProjBrgy\.env.local`
+
+Then fill in real values (excerpt):
 
 ```
 DB_HOST=127.0.0.1
