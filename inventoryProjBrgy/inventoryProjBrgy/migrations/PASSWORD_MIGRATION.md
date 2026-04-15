@@ -9,6 +9,10 @@ Aligned with **`STAFF_ADMIN_ROADMAP.md`** Phase 0: move off **plaintext** `PaSS`
   1. **`password_verify`** against `password_hash` when set, else  
   2. **Legacy** match against `PaSS`.
 
+## Schema detection
+
+The CLI checks **`INFORMATION_SCHEMA`** for **`users.id`**. If **`id`** exists (after migration **001**), updates use **`id`**; if not (legacy table with **`UserName`** as the only key), updates use **`UserName`**. The **`password_hash`** column must still exist — run **`001_users_role_and_id.sql`** first if it is missing.
+
 ## When to run the CLI migration
 
 Run on **development/staging** before production, after backup:
@@ -48,6 +52,14 @@ ALTER TABLE `users` DROP COLUMN `PaSS`;
 ```
 
 Only if nothing else in the codebase still references `PaSS` (search the repo first).
+
+## Troubleshooting
+
+| Symptom | What to do |
+|---------|------------|
+| `No connection could be made … actively refused it` | Start **MySQL** (e.g. XAMPP). Confirm **`DB_HOST`** / **`DB_PORT`** in **`.env.local`** (often `127.0.0.1` and `3306`). |
+| `Unknown column 'id'` (older script) | Use the latest **`migrate_passwords_to_bcrypt.php`** — it supports legacy **`UserName`**-only rows. |
+| `password_hash` missing | Run **`migrations/001_users_role_and_id.sql`**. |
 
 ## Not in SQL
 
