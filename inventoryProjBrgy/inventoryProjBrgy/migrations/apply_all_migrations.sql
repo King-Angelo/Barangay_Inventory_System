@@ -255,6 +255,7 @@ CREATE TABLE IF NOT EXISTS `notification_log` (
   COLLATE=utf8mb4_unicode_ci
   COMMENT='Audit log of outbound emails. Never stores full body or SMTP secrets.';
 -- Migration 006: link legacy `patient` to `residents` (optional, nullable)
+-- Context: migrations/LEGACY_AND_RESIDENTS.md (patient vs medsupply vs residents).
 -- RESIDENT_ROADMAP.md §2.2 / Q7: prefer patient.resident_id (nullable FK)
 -- over merging tables. Same real person can exist in both modules.
 -- Apply this migration once the residents table is populated and you are

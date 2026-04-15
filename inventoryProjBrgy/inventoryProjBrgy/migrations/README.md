@@ -44,6 +44,10 @@ mysql -u root -p mimds < migrations\verify_schema.sql
 
 See **`SEEDS.md`** (what is seeded, dev passwords, how to rotate `password_hash`).
 
+## Legacy vs new schema
+
+See **`LEGACY_AND_RESIDENTS.md`** (`patient` / `medsupply` vs `residents` / `permits`, optional **`patient.resident_id`** from migration **006**).
+
 ## Env template
 
 Copy `migrations/env.example` together with the app root `.env.example` into `inventoryProjBrgy/inventoryProjBrgy/.env.local` (see `PRODUCTION_SETUP.md`).
