@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main, 'feature/**']
+  pull_request:
+    branches: [main]
+
+jobs:
+  php:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: inventoryProjBrgy/inventoryProjBrgy
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, mysqli
+
+      - name: Composer install
+        run: composer install --no-interaction --prefer-dist
+
+      - name: PHP syntax check (api, worker, src)
+        run: |
+          set -e
+          for f in $(find api worker src -name '*.php' 2>/dev/null); do
+            php -l "$f"
+          done
+
+      - name: API health smoke (no DB, no secrets)
+        run: |
+          set -e
+          php -S 127.0.0.1:8765 dev-router.php &
+          sleep 2
+          curl -fsS http://127.0.0.1:8765/api/v1/auth/health

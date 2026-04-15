@@ -3,7 +3,8 @@
 	"description": "REST API (JWT) for Barangay Inventory — Member 4",
 	"require": {
 		"php": ">=8.0",
-		"firebase/php-jwt": "^6.10"
+		"firebase/php-jwt": "^6.10",
+		"phpmailer/phpmailer": "^6.9"
 	},
 	"config": {
 		"sort-packages": true,

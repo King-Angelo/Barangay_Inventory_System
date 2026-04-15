@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Api;
 
+use App\Integration\OutboxService;
 use mysqli;
 
 final class PermitApiService
@@ -149,15 +150,26 @@ final class PermitApiService
 				throw new \InvalidArgumentException('Only submitted permits can be approved or rejected.');
 			}
 			$newStatus = $action === 'approve' ? 'approved' : 'rejected';
-			$sql = 'UPDATE `permits` SET `status` = ?, `approved_by` = ?, `approved_at` = NOW(), `remarks` = ? WHERE `id` = ? AND `status` = \'submitted\'';
-			$st = mysqli_prepare($con, $sql);
-			$adminId = $ctx->userId;
-			mysqli_stmt_bind_param($st, 'sisi', $newStatus, $adminId, $remarks, $permitId);
-			mysqli_stmt_execute($st);
-			$ok = mysqli_affected_rows($con) > 0;
-			mysqli_stmt_close($st);
-			if (!$ok) {
-				throw new \InvalidArgumentException('Decision failed.');
+			$residentId = (int) $p['resident_id'];
+			mysqli_begin_transaction($con);
+			try {
+				$sql = 'UPDATE `permits` SET `status` = ?, `approved_by` = ?, `approved_at` = NOW(), `remarks` = ? WHERE `id` = ? AND `status` = \'submitted\'';
+				$st = mysqli_prepare($con, $sql);
+				$adminId = $ctx->userId;
+				mysqli_stmt_bind_param($st, 'sisi', $newStatus, $adminId, $remarks, $permitId);
+				mysqli_stmt_execute($st);
+				$ok = mysqli_affected_rows($con) > 0;
+				mysqli_stmt_close($st);
+				if (!$ok) {
+					mysqli_rollback($con);
+					throw new \InvalidArgumentException('Decision failed.');
+				}
+				$eventType = $action === 'approve' ? 'permit.approved' : 'permit.rejected';
+				OutboxService::enqueuePermitDecision($con, $eventType, $permitId, $residentId);
+				mysqli_commit($con);
+			} catch (\Throwable $e) {
+				mysqli_rollback($con);
+				throw $e;
 			}
 			return self::getById($con, $ctx, $permitId) ?? [];
 		}

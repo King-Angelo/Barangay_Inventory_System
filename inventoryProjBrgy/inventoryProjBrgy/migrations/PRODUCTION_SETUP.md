@@ -124,6 +124,34 @@ JWT_TTL=3600
 
 **Note:** `composer.json` sets `audit.block-insecure` to allow installing `firebase/php-jwt` on environments where Composer’s advisory check blocks the package; keep dependencies updated and review advisories for production.
 
+### Outbox worker (SMTP)
+
+Approving or rejecting a permit via **`PATCH /v1/permits/{id}`** inserts an **`integration_events`** row (migration `005_integration_events_and_notification_log.sql`) with JSON **`payload`** containing **`resident_id`** and **`permit_id`**. A separate process sends email to **`residents.email`**.
+
+1. Add real SMTP settings to **`.env.local`** (do not commit):
+
+```
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_USER=your-smtp-user
+SMTP_PASS=your-smtp-password
+SMTP_SECURE=tls
+MAIL_FROM=noreply@example.com
+MAIL_FROM_NAME=Barangay Inventory
+```
+
+Use **`SMTP_SECURE=none`** (and often port **1025**) for local tools like Mailpit/MailHog without TLS.
+
+2. From the app directory, run the worker manually (demo / cron-style):
+
+```bash
+cd inventoryProjBrgy/inventoryProjBrgy
+composer install
+php worker/send_outbox.php
+```
+
+The worker selects **`status = 'pending'`** rows, sends via PHPMailer, writes **`notification_log`**, and sets **`integration_events.status`** to **`processed`** or **`failed`**. If **`SMTP_HOST`** is unset and there are pending events, the script exits with code **2**.
+
 ---
 
 ## 6. Confirm app → DB connectivity
