@@ -1,0 +1,19 @@
+{
+	"name": "barangay-inventory/api",
+	"description": "REST API (JWT) for Barangay Inventory — Member 4",
+	"require": {
+		"php": ">=8.0",
+		"firebase/php-jwt": "^6.10"
+	},
+	"config": {
+		"sort-packages": true,
+		"audit": {
+			"block-insecure": false
+		}
+	},
+	"autoload": {
+		"psr-4": {
+			"App\\": "src/"
+		}
+	}
+}

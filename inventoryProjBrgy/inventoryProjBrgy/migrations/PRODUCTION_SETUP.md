@@ -38,6 +38,11 @@ DB_PASS=ChooseAStrongPassword!
 
 ## 3. Import base schema + run migrations in order
 
+**Error: `Table 'mimds.residents' doesn't exist` (or `permits`, etc.):** the app code is ahead of your database. Fix one of these ways:
+
+1. **Fresh full schema (simplest):** back up if needed, drop database `mimds`, create it again, import the **root** `mimds.sql` from the repo (it already includes residents, permits, migrations applied).
+2. **Upgrade an old database:** import **`migrations/apply_all_migrations.sql`** once (phpMyAdmin: select `mimds` → Import). Use this only if your DB still has the **legacy** `users` table (e.g. `UserName` as primary key) and none of the new tables. If you already have `users.id` and new tables, skip or run individual `00x_*.sql` files as needed.
+
 Run each file in sequence. In phpMyAdmin: select `mimds` → **Import** tab → choose file.
 Via command line (XAMPP shell or Windows CMD):
 
@@ -98,9 +103,26 @@ DB_USER=brgy_app
 DB_PASS=ChooseAStrongPassword!
 DB_NAME=mimds
 APP_ENV=local
+
+# JWT API (required for POST .../api/v1/auth/login)
+JWT_SECRET=your-random-secret-at-least-32-characters-long
+JWT_ISS=barangay-inventory
+JWT_TTL=3600
 ```
 
 `.env.local` is in `.gitignore`. Verify with `git status` — it must **not** appear as a tracked file.
+
+### API (Composer + JWT login)
+
+1. In **`inventoryProjBrgy/inventoryProjBrgy`**, run **`composer install`** (install [Composer](https://getcomposer.org/) first if needed, or `php composer.phar install` after downloading `composer.phar`).
+2. Ensure **`JWT_SECRET`** is set in `.env.local` (32+ characters). Without it, the API returns HTTP 500 with a clear message.
+3. **Apache:** enable **`mod_rewrite`**. The API entry is **`api/index.php`**; pretty URLs use **`api/.htaccess`** (e.g. `.../api/v1/auth/login`).
+4. **Health (no DB):** `GET .../api/v1/auth/health` returns JSON `{"status":"ok",...}`.
+5. **Login:** `POST .../api/v1/auth/login` with body  
+   `{"username":"your_user","password":"your_pass"}`  
+   Response includes **`access_token`** (Bearer JWT) and **`user`** (`id`, `username`, `role`).
+
+**Note:** `composer.json` sets `audit.block-insecure` to allow installing `firebase/php-jwt` on environments where Composer’s advisory check blocks the package; keep dependencies updated and review advisories for production.
 
 ---
 

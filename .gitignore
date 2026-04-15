@@ -2,3 +2,6 @@
 .env.local
 *.log
 /vendor/
+inventoryProjBrgy/inventoryProjBrgy/vendor/
+inventoryProjBrgy/inventoryProjBrgy/composer.phar
+inventoryProjBrgy/inventoryProjBrgy/composer-setup.php
