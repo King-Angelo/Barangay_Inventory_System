@@ -34,12 +34,14 @@ php tools/migrate_passwords_to_bcrypt.php --apply
 php tools/migrate_passwords_to_bcrypt.php --apply --clear-plaintext
 ```
 
-If some users **already** have `password_hash` but **`PaSS` still has old text**:
+If some users **already** have `password_hash` but **`PaSS` still has old text** (e.g. you ran `--apply` in one step and `--apply --clear-plaintext` in a second command **before** this fix):
 
 ```bash
 php tools/migrate_passwords_to_bcrypt.php --clear-plaintext-only   # dry-run
 php tools/migrate_passwords_to_bcrypt.php --apply --clear-plaintext-only
 ```
+
+A single **`--apply --clear-plaintext`** run now performs a **second pass** to clear `PaSS` when no rows need hashing anymore.
 
 Requires **`.env.local`** (or `.env`) with working **`DB_*`** — same as the app.
 

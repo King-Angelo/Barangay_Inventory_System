@@ -94,21 +94,14 @@ function users_has_password_hash(mysqli $con): bool
 	return (bool) $has;
 }
 
-if (!users_has_password_hash($con)) {
-	fwrite(STDERR, "Column users.password_hash not found.\n\n");
-	fwrite(STDERR, "Apply migration 001 first (adds password_hash, role, users.id, etc.):\n");
-	fwrite(STDERR, "  From this directory (inventoryProjBrgy\\inventoryProjBrgy):\n");
-	fwrite(STDERR, "    PowerShell:  Get-Content migrations\\001_users_role_and_id.sql | mysql -u root -p mimds\n");
-	fwrite(STDERR, "    CMD:         mysql -u root -p mimds < migrations\\001_users_role_and_id.sql\n");
-	fwrite(STDERR, "  Or import migrations\\001_users_role_and_id.sql in phpMyAdmin (database mimds selected).\n\n");
-	fwrite(STDERR, "If 001 already ran, confirm you connected to the same DB as in .env.local (DB_NAME).\n");
-	exit(1);
-}
-
-$key = users_row_key($con);
-echo "Using row key: {$key}\n";
-
-if ($clearOnly) {
+/**
+ * Clear `PaSS` for rows that already have bcrypt (`password_hash` set). Used by
+ * --clear-plaintext-only and as a second pass when --apply --clear-plaintext runs after a prior --apply.
+ *
+ * @return int Number of rows cleared (0 if none), or -1 if dry-run only listed
+ */
+function clear_plaintext_residuals(mysqli $con, string $key, bool $apply): int
+{
 	$sel = $key === 'id'
 		? 'SELECT `id`, `UserName` FROM `users`
 			WHERE `password_hash` IS NOT NULL AND TRIM(`password_hash`) <> \'\'
@@ -130,7 +123,7 @@ if ($clearOnly) {
 
 	if ($rows === []) {
 		echo "No rows need plaintext cleared (password_hash set, PaSS empty or already cleared).\n";
-		exit(0);
+		return 0;
 	}
 
 	echo "Rows with bcrypt set but PaSS still non-empty:\n";
@@ -144,7 +137,7 @@ if ($clearOnly) {
 
 	if (!$apply) {
 		echo "\nDry-run. Re-run with --apply --clear-plaintext-only to clear PaSS for these users.\n";
-		exit(0);
+		return -1;
 	}
 
 	$upd = $key === 'id'
@@ -169,6 +162,25 @@ if ($clearOnly) {
 	}
 	mysqli_stmt_close($upd);
 	echo "Cleared PaSS for {$n} user(s).\n";
+	return $n;
+}
+
+if (!users_has_password_hash($con)) {
+	fwrite(STDERR, "Column users.password_hash not found.\n\n");
+	fwrite(STDERR, "Apply migration 001 first (adds password_hash, role, users.id, etc.):\n");
+	fwrite(STDERR, "  From this directory (inventoryProjBrgy\\inventoryProjBrgy):\n");
+	fwrite(STDERR, "    PowerShell:  Get-Content migrations\\001_users_role_and_id.sql | mysql -u root -p mimds\n");
+	fwrite(STDERR, "    CMD:         mysql -u root -p mimds < migrations\\001_users_role_and_id.sql\n");
+	fwrite(STDERR, "  Or import migrations\\001_users_role_and_id.sql in phpMyAdmin (database mimds selected).\n\n");
+	fwrite(STDERR, "If 001 already ran, confirm you connected to the same DB as in .env.local (DB_NAME).\n");
+	exit(1);
+}
+
+$key = users_row_key($con);
+echo "Using row key: {$key}\n";
+
+if ($clearOnly) {
+	clear_plaintext_residuals($con, $key, $apply);
 	exit(0);
 }
 
@@ -195,7 +207,10 @@ mysqli_free_result($res);
 if ($rows === []) {
 	echo "No users need migration (all have password_hash or empty PaSS).\n";
 	if ($apply && $clearPlaintext) {
-		echo "Tip: run with --clear-plaintext-only --apply if bcrypt exists but PaSS is not empty.\n";
+		echo "Running second pass: clear PaSS where bcrypt is already set...\n";
+		clear_plaintext_residuals($con, $key, true);
+	} elseif ($clearPlaintext && !$apply) {
+		echo "Tip: use --apply --clear-plaintext to hash and clear, or --apply --clear-plaintext-only to clear leftover PaSS.\n";
 	}
 	exit(0);
 }
