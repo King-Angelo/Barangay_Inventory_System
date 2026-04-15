@@ -43,7 +43,7 @@ DB_PASS=ChooseAStrongPassword!
 1. **Fresh full schema (simplest):** back up if needed, drop database `mimds`, create it again, import the **root** `mimds.sql` from the repo (it already includes residents, permits, migrations applied).
 2. **Upgrade an old database:** import **`migrations/apply_all_migrations.sql`** once (phpMyAdmin: select `mimds` → Import). Use this only if your DB still has the **legacy** `users` table (e.g. `UserName` as primary key) and none of the new tables. If you already have `users.id` and new tables, skip or run individual `00x_*.sql` files as needed.
 
-Run each file in sequence (see **`migrations/README.md`** for order, idempotency, optional `verify_schema.sql`, **`migrations/SEEDS.md`** for bcrypt / seed data, and **`migrations/LEGACY_AND_RESIDENTS.md`** for legacy `patient` / new `residents` alignment). In phpMyAdmin: select `mimds` → **Import** tab → choose file.
+Run each file in sequence (see **`migrations/README.md`** for order, idempotency, optional `verify_schema.sql`, **`migrations/SEEDS.md`** for bcrypt / seed data, **`migrations/LEGACY_AND_RESIDENTS.md`** for legacy `patient` / new `residents` alignment, **`migrations/DEV_REFERENCE.md`** for column names / FKs / API JSON, and **`migrations/SANITIZED_DATA.md`** for repo-safe test data rules). In phpMyAdmin: select `mimds` → **Import** tab → choose file.
 Via command line (XAMPP shell or Windows CMD):
 
 ```bash
