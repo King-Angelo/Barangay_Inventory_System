@@ -24,6 +24,21 @@ ON DUPLICATE KEY UPDATE
   `role`          = VALUES(`role`),
   `password_hash` = VALUES(`password_hash`);
 
+-- Demo staff user (barangay 1) for RBAC / API tests — same bcrypt as admin placeholder `ChangeMe2026!`
+-- Requires `barangays.n = 1` (included in base `mimds.sql`).
+INSERT INTO `users` (`UserName`, `PaSS`, `role`, `password_hash`, `barangay_id`)
+VALUES (
+  'staff_dev',
+  '',
+  'staff',
+  '$2y$10$6fjLU5olcVT0HQ3G5CgwHORL75efEzYN8r8jCvkrNn89mHnO4/7Km',
+  1
+)
+ON DUPLICATE KEY UPDATE
+  `role`          = VALUES(`role`),
+  `password_hash` = VALUES(`password_hash`),
+  `barangay_id`   = VALUES(`barangay_id`);
+
 -- Seed v1 permit type: Barangay Clearance
 INSERT INTO `permit_types` (`name`, `description`, `is_active`)
 VALUES (

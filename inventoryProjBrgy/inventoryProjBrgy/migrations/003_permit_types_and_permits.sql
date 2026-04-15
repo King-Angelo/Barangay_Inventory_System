@@ -1,5 +1,5 @@
 -- Migration 003: permit_types and permits
--- v1 permit type: Barangay Clearance only (seeded in 007_seed.sql)
+-- v1 permit type: Barangay Clearance only (seeded in 007_seeds.sql)
 -- Status flow: draft → submitted (staff) → approved/rejected (admin only)
 -- reference_no: unique, human-readable identifier for permit-ref search
 
