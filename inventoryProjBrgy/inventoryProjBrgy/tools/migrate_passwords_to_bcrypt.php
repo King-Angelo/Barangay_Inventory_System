@@ -97,8 +97,9 @@ function users_has_password_hash(mysqli $con): bool
 if (!users_has_password_hash($con)) {
 	fwrite(STDERR, "Column users.password_hash not found.\n\n");
 	fwrite(STDERR, "Apply migration 001 first (adds password_hash, role, users.id, etc.):\n");
-	fwrite(STDERR, "  From this directory (inventoryProjBrgy\\inventoryProjBrgy), run:\n");
-	fwrite(STDERR, "    mysql -u root -p mimds < migrations\\001_users_role_and_id.sql\n");
+	fwrite(STDERR, "  From this directory (inventoryProjBrgy\\inventoryProjBrgy):\n");
+	fwrite(STDERR, "    PowerShell:  Get-Content migrations\\001_users_role_and_id.sql | mysql -u root -p mimds\n");
+	fwrite(STDERR, "    CMD:         mysql -u root -p mimds < migrations\\001_users_role_and_id.sql\n");
 	fwrite(STDERR, "  Or import migrations\\001_users_role_and_id.sql in phpMyAdmin (database mimds selected).\n\n");
 	fwrite(STDERR, "If 001 already ran, confirm you connected to the same DB as in .env.local (DB_NAME).\n");
 	exit(1);
