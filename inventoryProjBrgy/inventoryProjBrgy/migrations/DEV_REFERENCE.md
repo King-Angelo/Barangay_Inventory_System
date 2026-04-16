@@ -129,6 +129,7 @@ Login body: **`username`**, **`password`** → `users.UserName` + `password_hash
 | Migrations order | `migrations/README.md` |
 | Seeds & passwords | `migrations/SEEDS.md` |
 | Sanitized data policy | `migrations/SANITIZED_DATA.md` |
+| Plaintext → bcrypt (`users`) | `migrations/PASSWORD_MIGRATION.md` · `tools/migrate_passwords_to_bcrypt.php` |
 | Legacy vs `residents` | `migrations/LEGACY_AND_RESIDENTS.md` |
 | Env template | `inventoryProjBrgy/inventoryProjBrgy/.env.example` |
 | Postman | `postman/Barangay_Inventory_API.postman_collection.json` |

@@ -8,6 +8,7 @@
 | **Safe test data policy & approved SQL scripts** | [`migrations/SANITIZED_DATA.md`](migrations/SANITIZED_DATA.md) |
 | **Migration order** | [`migrations/README.md`](migrations/README.md) |
 | **Env template (no secrets)** | [`.env.example`](.env.example) → copy to `.env.local` |
+| **Migrate `users.PaSS` → `password_hash`** | [`migrations/PASSWORD_MIGRATION.md`](migrations/PASSWORD_MIGRATION.md) · `tools/migrate_passwords_to_bcrypt.php` |
 | **Postman** | Repo root `postman/` |
 | **API entry** | `api/index.php` (JWT on `/v1/residents`, `/v1/permits`) |
 | **Local API server** | `php -S 127.0.0.1:8765 dev-router.php` from this directory |

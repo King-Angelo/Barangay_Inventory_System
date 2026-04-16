@@ -20,11 +20,24 @@ try {
 	$con = mysqli_connect($host, $username, $password, $dbname, $port);
 } catch (mysqli_sql_exception $e) {
 	error_log('mysqli_connect failed: ' . $e->getMessage());
+	if (PHP_SAPI === 'cli') {
+		fwrite(STDERR, 'Database connection failed: ' . $e->getMessage() . "\n");
+		fwrite(STDERR, "Tried: host={$host} port={$port} user={$username} database={$dbname}\n");
+		fwrite(STDERR, "Fix: start MySQL (e.g. XAMPP → Start MySQL). Check DB_HOST and DB_PORT in .env.local.\n");
+		exit(1);
+	}
 	http_response_code(503);
 	exit('Database unavailable.');
 }
 if ($con === false) {
-	error_log('mysqli_connect failed: ' . mysqli_connect_error());
+	$err = mysqli_connect_error();
+	error_log('mysqli_connect failed: ' . $err);
+	if (PHP_SAPI === 'cli') {
+		fwrite(STDERR, 'Database connection failed: ' . $err . "\n");
+		fwrite(STDERR, "Tried: host={$host} port={$port} user={$username} database={$dbname}\n");
+		fwrite(STDERR, "Fix: start MySQL (e.g. XAMPP → Start MySQL). Check DB_HOST and DB_PORT in .env.local.\n");
+		exit(1);
+	}
 	http_response_code(503);
 	exit('Database unavailable.');
 }

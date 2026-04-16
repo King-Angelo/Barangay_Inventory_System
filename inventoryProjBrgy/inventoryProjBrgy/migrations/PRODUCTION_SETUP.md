@@ -63,6 +63,16 @@ mysql -u root -p mimds < migrations\006_patient_resident_link.sql
 mysql -u root -p mimds < migrations\007_seeds.sql
 ```
 
+**Windows PowerShell:** `<` file redirection is not supported like in CMD — use one of:
+
+```powershell
+cd C:\path\to\inventoryProjBrgy\inventoryProjBrgy
+Get-Content .\migrations\001_users_role_and_id.sql | & "C:\xampp\mysql\bin\mysql.exe" -u root -p mimds
+# Or: cmd /c "mysql -u root -p mimds < migrations\001_users_role_and_id.sql"
+```
+
+(Adjust the path to `mysql.exe` if MySQL is not on your `PATH`.)
+
 **Linux / Mac (XAMPP or native MySQL):**
 ```bash
 mysql -u root -p mimds < migrations/001_users_role_and_id.sql
@@ -89,6 +99,12 @@ UPDATE `users`
 SET `password_hash` = '$2y$12$...(your hash)...'
 WHERE `UserName` = 'admin';
 ```
+
+---
+
+## 4b. Optional: migrate plaintext `users.PaSS` to bcrypt
+
+After migration **001**, see **`migrations/PASSWORD_MIGRATION.md`** and run **`tools/migrate_passwords_to_bcrypt.php`** (dry-run first, then `--apply`). Keeps login working via **`Login.php`** / JWT while removing reliance on plaintext.
 
 ---
 
