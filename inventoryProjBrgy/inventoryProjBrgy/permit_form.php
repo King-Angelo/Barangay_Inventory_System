@@ -46,6 +46,12 @@ if ($search !== '') {
       <p style="color:#c0392b;font-weight:600"><?php echo $error; ?></p>
     <?php endif; ?>
 
+    <?php if (empty($permit_types)): ?>
+      <p style="color:#c0392b;font-weight:600;margin-bottom:12px">
+        No permit types in the database. Run <code>migrations/007_seeds.sql</code> on <code>mimds</code> (adds &ldquo;Barangay Clearance&rdquo;).
+      </p>
+    <?php endif; ?>
+
     <form method="GET" style="margin-bottom:14px">
       <input type="hidden" name="resident_id" value="<?php echo $prefill_resident; ?>">
       <div style="display:flex;gap:8px;max-width:420px">

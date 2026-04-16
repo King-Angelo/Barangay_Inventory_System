@@ -18,7 +18,7 @@ VALUES (
   'admin',
   '',   -- empty; login must use password_hash column
   'admin',
-  '$2y$10$6fjLU5olcVT0HQ3G5CgwHORL75efEzYN8r8jCvkrNn89mHnO4/7Km',
+  '$2y$10$vl3mbjJbmxS51ZwKFjArlerRFtlIo41xhTf8vP6DaaBlye03MsWuy',
   NULL
 )
 ON DUPLICATE KEY UPDATE
@@ -32,7 +32,7 @@ VALUES (
   'staff_dev',
   '',
   'staff',
-  '$2y$10$6fjLU5olcVT0HQ3G5CgwHORL75efEzYN8r8jCvkrNn89mHnO4/7Km',
+  '$2y$10$vl3mbjJbmxS51ZwKFjArlerRFtlIo41xhTf8vP6DaaBlye03MsWuy',
   1
 )
 ON DUPLICATE KEY UPDATE

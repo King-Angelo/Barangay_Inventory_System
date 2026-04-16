@@ -389,7 +389,7 @@ INSERT INTO `users` (`id`, `UserName`, `PaSS`, `role`, `password_hash`, `baranga
 (1, 'Cj233', 'Cj23', 'staff', NULL, NULL, '2026-04-12 12:52:51', '2026-04-12 12:52:51'),
 (2, 'clark', 'clark', 'staff', NULL, NULL, '2026-04-12 12:52:51', '2026-04-12 12:52:51'),
 (3, 'qwertyyyy', '', 'staff', NULL, NULL, '2026-04-12 12:52:51', '2026-04-12 12:52:51'),
-(4, 'admin', 'admin123', 'admin', '$2y$10$6fjLU5olcVT0HQ3G5CgwHORL75efEzYN8r8jCvkrNn89mHnO4/7Km', NULL, '2026-04-12 12:53:54', '2026-04-12 13:02:50'),
+(4, 'admin', 'admin123', 'admin', '$2y$10$vl3mbjJbmxS51ZwKFjArlerRFtlIo41xhTf8vP6DaaBlye03MsWuy', NULL, '2026-04-12 12:53:54', '2026-04-12 13:02:50'),
 (5, 'staff1', 'staff123', 'staff', NULL, NULL, '2026-04-12 12:55:03', '2026-04-12 12:55:03');
 
 --
