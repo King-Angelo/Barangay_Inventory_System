@@ -111,7 +111,7 @@ final class OutboxProcessor
 			return;
 		}
 
-		if (!str_starts_with($eventType, 'permit.')) {
+		if (!str_starts_with($eventType, 'permit.') && !str_starts_with($eventType, 'payment.')) {
 			self::finalizeFailure($con, $eventId, $residentId, '', 'Unsupported event_type: ' . $eventType, 'outbox_unsupported');
 			return;
 		}
@@ -263,6 +263,7 @@ final class OutboxProcessor
 		return match ($eventType) {
 			'permit.approved' => 'Permit approved — ' . $ref,
 			'permit.rejected' => 'Permit decision — ' . $ref,
+			'payment.paid' => 'Payment received — ' . $ref,
 			default => 'Permit update — ' . $ref,
 		};
 	}
@@ -281,6 +282,8 @@ final class OutboxProcessor
 			$lines[] = 'Your barangay permit application has been approved.';
 		} elseif ($eventType === 'permit.rejected') {
 			$lines[] = 'Your barangay permit application was not approved.';
+		} elseif ($eventType === 'payment.paid') {
+			$lines[] = 'We have recorded your mock payment for this permit. Thank you.';
 		} else {
 			$lines[] = 'There is an update regarding your permit application.';
 		}

@@ -15,6 +15,7 @@ require_once __DIR__ . '/bootstrap.php';
 use App\Api\AuthContextFactory;
 use App\Api\AuthService;
 use App\Api\JwtIssuer;
+use App\Api\PaymentApiService;
 use App\Api\PermitApiService;
 use App\Api\ResidentApiService;
 
@@ -23,7 +24,7 @@ header('Content-Type: application/json; charset=utf-8');
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
 if ($method === 'OPTIONS') {
-	header('Access-Control-Allow-Methods: GET, POST, PATCH, OPTIONS');
+	header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
 	header('Access-Control-Allow-Headers: Content-Type, Authorization');
 	http_response_code(204);
 	exit;
@@ -170,6 +171,18 @@ try {
 		exit;
 	}
 
+	// PUT /v1/residents/{id}
+	if ($method === 'PUT' && count($segments) === 3 && $segments[0] === 'v1' && $segments[1] === 'residents' && ctype_digit($segments[2])) {
+		$data = read_json_body();
+		$ok = ResidentApiService::put($con, $ctx, (int) $segments[2], $data);
+		if (!$ok) {
+			json_error(404, 'not_found', 'Resident not found.');
+		}
+		$row = ResidentApiService::getById($con, $ctx, (int) $segments[2]);
+		echo json_encode(['data' => $row], JSON_UNESCAPED_SLASHES);
+		exit;
+	}
+
 	// GET /v1/permits
 	if ($method === 'GET' && $segments === ['v1', 'permits']) {
 		$rid = isset($_GET['resident_id']) ? (int) $_GET['resident_id'] : null;
@@ -210,6 +223,25 @@ try {
 	if ($method === 'PATCH' && count($segments) === 3 && $segments[0] === 'v1' && $segments[1] === 'permits' && ctype_digit($segments[2])) {
 		$data = read_json_body();
 		$out = PermitApiService::patch($con, $ctx, (int) $segments[2], $data);
+		echo json_encode(['data' => $out], JSON_UNESCAPED_SLASHES);
+		exit;
+	}
+
+	// DELETE /v1/permits/{id} — draft only
+	if ($method === 'DELETE' && count($segments) === 3 && $segments[0] === 'v1' && $segments[1] === 'permits' && ctype_digit($segments[2])) {
+		$deleted = PermitApiService::deleteDraft($con, $ctx, (int) $segments[2]);
+		if (!$deleted) {
+			json_error(404, 'not_found', 'Permit could not be deleted.');
+		}
+		http_response_code(204);
+		exit;
+	}
+
+	// POST /v1/payments — mock provider (permit must be approved or ready_for_payment)
+	if ($method === 'POST' && $segments === ['v1', 'payments']) {
+		$data = read_json_body();
+		$out = PaymentApiService::createMockPayment($con, $ctx, $data);
+		http_response_code(201);
 		echo json_encode(['data' => $out], JSON_UNESCAPED_SLASHES);
 		exit;
 	}

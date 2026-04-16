@@ -4,6 +4,8 @@
 
 | Need | Location |
 |------|----------|
+| **REST API (JWT)** | `api/index.php` — `POST /v1/auth/login`, `GET/POST/PUT/PATCH` `/v1/residents`, `GET/POST/PATCH/DELETE` `/v1/permits`, `POST /v1/payments` (mock), `GET /v1/auth/health` |
+| **PHPUnit (JWT smoke)** | `phpunit.xml.dist`, `tests/JwtRoundTripTest.php` — run `./vendor/bin/phpunit` after `composer install` |
 | **Column names, FKs, seeded test users** | [`migrations/DEV_REFERENCE.md`](migrations/DEV_REFERENCE.md) |
 | **Safe test data policy & approved SQL scripts** | [`migrations/SANITIZED_DATA.md`](migrations/SANITIZED_DATA.md) |
 | **Migration order** | [`migrations/README.md`](migrations/README.md) |

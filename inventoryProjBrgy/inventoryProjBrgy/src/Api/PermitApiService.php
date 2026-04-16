@@ -177,6 +177,27 @@ final class PermitApiService
 		throw new \InvalidArgumentException('Unknown action. Use submit, approve, or reject.');
 	}
 
+	/**
+	 * Remove a draft permit (DELETE verb for rubric). Not allowed once submitted.
+	 */
+	public static function deleteDraft(mysqli $con, AuthContext $ctx, int $id): bool
+	{
+		$p = self::getById($con, $ctx, $id);
+		if ($p === null) {
+			throw new \InvalidArgumentException('Permit not found.');
+		}
+		if (($p['status'] ?? '') !== 'draft') {
+			throw new \InvalidArgumentException('Only draft permits can be deleted.');
+		}
+		$sql = 'DELETE FROM `permits` WHERE `id` = ? AND `status` = \'draft\'';
+		$st = mysqli_prepare($con, $sql);
+		mysqli_stmt_bind_param($st, 'i', $id);
+		mysqli_stmt_execute($st);
+		$ok = mysqli_affected_rows($con) > 0;
+		mysqli_stmt_close($st);
+		return $ok;
+	}
+
 	private static function residentBarangayId(mysqli $con, int $residentId): int
 	{
 		$sql = 'SELECT `barangay_id` FROM `residents` WHERE `id` = ? LIMIT 1';

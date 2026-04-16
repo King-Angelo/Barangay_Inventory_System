@@ -1,7 +1,7 @@
 {
 	"info": {
 		"name": "Barangay Inventory API",
-		"description": "JWT auth + residents + permits. Run `php -S 127.0.0.1:8765 dev-router.php` from inventoryProjBrgy/inventoryProjBrgy. Set {{base_url}} and run **Auth / Login** first; token saves to collection variable.",
+		"description": "JWT auth + residents + permits + mock payments. Verbs: GET/POST/PUT/PATCH/DELETE. Run `php -S 127.0.0.1:8765 dev-router.php` from inventoryProjBrgy/inventoryProjBrgy. Set {{base_url}} and run **Auth / Login** first; token saves to collection variable. Mock payment requires a permit in **approved** (or ready_for_payment) status — run Submit then Approve (admin) first.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"variable": [
@@ -97,6 +97,21 @@
 						},
 						"url": "{{base_url}}/v1/residents/1"
 					}
+				},
+				{
+					"name": "Put (full replace, admin)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"barangay_id\": 1,\n  \"last_name\": \"Dela Cruz\",\n  \"first_name\": \"Juan\",\n  \"middle_name\": \"\",\n  \"email\": \"juan.put@local.test\",\n  \"phone\": \"\",\n  \"birthdate\": \"\",\n  \"gender\": \"\",\n  \"address_line\": \"\",\n  \"status\": \"active\"\n}"
+						},
+						"url": "{{base_url}}/v1/residents/1"
+					}
 				}
 			]
 		},
@@ -162,6 +177,34 @@
 							"raw": "{\n  \"action\": \"approve\",\n  \"remarks\": \"OK\"\n}"
 						},
 						"url": "{{base_url}}/v1/permits/1"
+					}
+				},
+				{
+					"name": "Delete draft",
+					"request": {
+						"method": "DELETE",
+						"header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+						"url": "{{base_url}}/v1/permits/1"
+					}
+				}
+			]
+		},
+		{
+			"name": "Payments",
+			"item": [
+				{
+					"name": "Mock pay (after approve)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"permit_id\": 1,\n  \"amount\": 100.0,\n  \"idempotency_key\": \"postman-demo-001\"\n}"
+						},
+						"url": "{{base_url}}/v1/payments"
 					}
 				}
 			]

@@ -30,6 +30,9 @@ jobs:
             php -l "$f"
           done
 
+      - name: PHPUnit (JWT round-trip, no DB)
+        run: ./vendor/bin/phpunit --configuration phpunit.xml.dist
+
       - name: API health smoke (no DB, no secrets)
         run: |
           set -e

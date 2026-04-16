@@ -231,6 +231,81 @@ final class ResidentApiService
 		return $ok && mysqli_affected_rows($con) >= 0;
 	}
 
+	/**
+	 * Full replace (PUT) — all fields required per RESIDENT_ROADMAP.md PUT semantics.
+	 *
+	 * @param array<string, mixed> $data
+	 */
+	public static function put(mysqli $con, AuthContext $ctx, int $id, array $data): bool
+	{
+		$existing = self::getByIdUnscoped($con, $id);
+		if ($existing === null) {
+			return false;
+		}
+		self::assertCanAccessResident($ctx, (int) $existing['barangay_id']);
+
+		$required = ['last_name', 'first_name', 'email', 'phone', 'birthdate', 'gender', 'address_line', 'middle_name'];
+		foreach ($required as $f) {
+			if (!array_key_exists($f, $data)) {
+				throw new \InvalidArgumentException('Field "' . $f . '" is required for PUT.');
+			}
+		}
+
+		$bid = isset($data['barangay_id']) ? (int) $data['barangay_id'] : 0;
+		if ($ctx->isAdmin()) {
+			if ($bid < 1) {
+				throw new \InvalidArgumentException('barangay_id is required for PUT.');
+			}
+		} else {
+			$bid = $ctx->barangayId !== null ? (int) $ctx->barangayId : 1;
+		}
+
+		if (!$ctx->isAdmin() && $ctx->barangayId !== null && $bid !== $ctx->barangayId) {
+			throw new \InvalidArgumentException('Staff cannot assign residents outside their barangay.');
+		}
+
+		$status = (string) ($existing['status'] ?? 'active');
+		if ($ctx->isAdmin() && array_key_exists('status', $data)) {
+			$status = (string) $data['status'];
+			if (!in_array($status, ['active', 'archived'], true)) {
+				throw new \InvalidArgumentException('status must be active or archived.');
+			}
+		}
+
+		$last = trim((string) $data['last_name']);
+		$first = trim((string) $data['first_name']);
+		$middle = trim((string) $data['middle_name']);
+		$email = trim((string) $data['email']);
+		if ($last === '' || $first === '' || $email === '') {
+			throw new \InvalidArgumentException('last_name, first_name, and email cannot be empty.');
+		}
+
+		$phone = trim((string) $data['phone']);
+		$birth = trim((string) $data['birthdate']);
+		$gender = trim((string) $data['gender']);
+		$addr = trim((string) $data['address_line']);
+
+		$birthSql = $birth === '' ? null : $birth;
+		$phone = $phone === '' ? null : $phone;
+		$middle = $middle === '' ? null : $middle;
+		$gender = $gender === '' ? null : $gender;
+		$addr = $addr === '' ? null : $addr;
+
+		$sql = 'UPDATE `residents` SET `barangay_id` = ?, `last_name` = ?, `first_name` = ?, `middle_name` = ?, `email` = ?, `phone` = ?, `birthdate` = ?, `gender` = ?, `address_line` = ?, `status` = ? WHERE `id` = ?';
+		$st = mysqli_prepare($con, $sql);
+		if ($st === false) {
+			throw new \RuntimeException(mysqli_error($con));
+		}
+		mysqli_stmt_bind_param($st, 'isssssssssi', $bid, $last, $first, $middle, $email, $phone, $birthSql, $gender, $addr, $status, $id);
+		$ok = mysqli_stmt_execute($st);
+		if (!$ok && mysqli_errno($con) && str_contains(mysqli_error($con), 'Duplicate')) {
+			mysqli_stmt_close($st);
+			throw new \InvalidArgumentException('Email already registered for this barangay.');
+		}
+		mysqli_stmt_close($st);
+		return $ok && mysqli_affected_rows($con) >= 0;
+	}
+
 	private static function getByIdUnscoped(mysqli $con, int $id): ?array
 	{
 		$sql = 'SELECT * FROM `residents` WHERE `id` = ? LIMIT 1';
