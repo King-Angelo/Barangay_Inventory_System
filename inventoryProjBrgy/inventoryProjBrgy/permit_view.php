@@ -11,6 +11,11 @@ if (!$permit) {
     exit;
 }
 
+if (!user_can_access_resident_id((int)$permit['resident_id'])) {
+    header('Location: permits.php?error=' . urlencode('Access denied.'));
+    exit;
+}
+
 $msg   = htmlspecialchars($_GET['msg']   ?? '', ENT_QUOTES, 'UTF-8');
 $error = htmlspecialchars($_GET['error'] ?? '', ENT_QUOTES, 'UTF-8');
 

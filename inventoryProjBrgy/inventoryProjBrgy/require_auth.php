@@ -3,6 +3,8 @@
  * require_auth.php
  * Enforces login. Exposes RBAC helper functions.
  * Uses RELATIVE redirects so it works in any subfolder (e.g. /inventoryProjBrgy/).
+ *
+ * Session keys set at login: user, role, user_id, barangay_id (nullable — NULL for admin “super” scope).
  */
 
 chdir(__DIR__);

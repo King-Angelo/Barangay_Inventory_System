@@ -13,6 +13,11 @@ if ($permit_id < 1) {
 }
 
 if ($action === 'submit') {
+    $pchk = get_permit($permit_id);
+    if (!$pchk || !user_can_access_resident_id((int)$pchk['resident_id'])) {
+        header('Location: permits.php?error=' . urlencode('Access denied.'));
+        exit;
+    }
     $ok = submit_permit($permit_id, $user_id);
     if ($ok) {
         header('Location: permits.php?msg=' . urlencode('Permit submitted for admin review.'));

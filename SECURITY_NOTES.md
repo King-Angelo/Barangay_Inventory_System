@@ -22,13 +22,16 @@ The cookie is set with the following flags:
 
 ### 1.2 What is Stored in `$_SESSION`
 
-After a successful login, three values are written to the session:
+After a successful login, these values are written to the session:
 
 ```
-$_SESSION['user']    — username string (display / audit use)
-$_SESSION['role']    — 'staff' | 'admin'  (RBAC gate key)
-$_SESSION['user_id'] — integer FK to users.id (used for audit columns submitted_by, approved_by)
+$_SESSION['user']       — username string (display / audit use)
+$_SESSION['role']       — 'staff' | 'admin'  (RBAC gate key)
+$_SESSION['user_id']    — integer FK to users.id (used for audit columns submitted_by, approved_by)
+$_SESSION['barangay_id'] — integer FK to barangays.n, or NULL when users.barangay_id is NULL (typical seeded admin)
 ```
+
+**Barangay scope:** Staff accounts are tied to one barangay; the legacy UI lists residents and permits for that barangay only. Admins with `barangay_id` NULL (see `007_seeds.sql` for `admin`) see residents across **all** barangays until a barangay is assigned in the database. Changing a resident’s **`barangay_id`** is **admin-only** (dropdown on the resident form); staff see a read-only barangay label.
 
 No passwords, tokens, or sensitive DB data are stored in the session.
 
@@ -63,8 +66,8 @@ The system uses a two-role model stored in `users.role` (ENUM `'staff'` | `'admi
 
 | Role  | Capabilities |
 |-------|-------------|
-| **staff** | Login; view all pages; create/edit residents; create permits (draft); submit permits for review |
-| **admin** | Everything staff can do, plus: approve/reject permits; archive residents; access Settings; change barangay |
+| **staff** | Login; legacy app pages; create/edit residents **within their barangay**; create permits for residents in that barangay; submit drafts for review |
+| **admin** | Approve/reject permits; archive residents; access Settings; **assign or change** a resident’s `barangay_id`; when `users.barangay_id` is NULL, may view residents/permits across all barangays |
 
 ### 3.2 Enforcement Files
 
@@ -100,6 +103,10 @@ This is a UX convenience — the server-side gate in `require_admin.php` / `requ
 - Only a **staff or admin** user can move a permit from `draft` → `submitted`.
 - Only an **admin** can move a permit from `submitted` → `approved` or `rejected`.
 - These transitions are enforced in `permit_action.php` via `require_admin_role()` for the decide actions, and at the SQL level — the `WHERE status='submitted'` clause in `decide_permit()` prevents status skipping.
+
+### 3.6 Barangay scoping (legacy UI)
+
+Server-side helpers in `actions.php` (`user_can_access_resident_id()`, scoped `list_permits()`, etc.) ensure staff cannot open or save residents outside their session barangay, create permits for other barangays, or submit another barangay’s draft permit by URL tampering. Admins bypass the resident scope check for approvals.
 
 ---
 

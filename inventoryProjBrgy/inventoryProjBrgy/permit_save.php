@@ -17,6 +17,11 @@ if ($resident_id < 1 || $permit_type_id < 1) {
     exit;
 }
 
+if (!user_can_access_resident_id($resident_id)) {
+    header('Location: permit_form.php?error=' . urlencode('Access denied — resident is outside your barangay.'));
+    exit;
+}
+
 $new_id = create_permit($resident_id, $permit_type_id, $user_id);
 
 if ($new_id > 0) {

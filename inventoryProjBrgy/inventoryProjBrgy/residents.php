@@ -8,9 +8,19 @@ $error  = htmlspecialchars($_GET['error'] ?? '', ENT_QUOTES, 'UTF-8');
 $denied = isset($_GET['denied']);
 
 $show_archived = (function_exists('is_admin') && is_admin()) && isset($_GET['archived']);
-$barangay_id   = (int)($_SESSION['barangay_id'] ?? 1);
+$is_admin_user = function_exists('is_admin') && is_admin();
+$session_brgy  = array_key_exists('barangay_id', $_SESSION) ? $_SESSION['barangay_id'] : null;
+if ($session_brgy !== null && $session_brgy !== '') {
+    $session_brgy = (int)$session_brgy;
+}
+$show_all_barangays = $is_admin_user && $session_brgy === null;
+$barangay_id        = ($session_brgy !== null) ? (int)$session_brgy : 1;
 
-$residents = list_residents($barangay_id, $show_archived);
+if ($show_all_barangays) {
+    $residents = list_residents(0, $show_archived, true);
+} else {
+    $residents = list_residents($barangay_id, $show_archived, false);
+}
 ?><!DOCTYPE html>
 <html>
 <head>
@@ -35,6 +45,10 @@ $residents = list_residents($barangay_id, $show_archived);
         <span class="badge-admin">ADMIN</span>
       <?php endif; ?>
     </h2>
+
+    <?php if ($show_all_barangays): ?>
+      <p style="color:#555;font-size:13px;margin-bottom:10px">Showing residents for <strong>all barangays</strong> (admin account with no barangay assignment).</p>
+    <?php endif; ?>
 
     <?php if ($denied): ?><p class="denied-msg">&#9888; Access denied &mdash; admin only.</p><?php endif; ?>
     <?php if ($msg   !== ''): ?><p class="ok-msg"><?php echo $msg; ?></p><?php endif; ?>

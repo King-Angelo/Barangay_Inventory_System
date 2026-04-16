@@ -293,18 +293,51 @@ function release($id){
 // ═══════════════════════════════════════════════════════════════════════════
 
 /**
- * List residents for a barangay. Admin can include archived.
+ * True if the current legacy session may act on this resident (staff: same barangay; admin: yes).
+ * Requires require_auth.php to be loaded before actions.php on the request.
  */
-function list_residents($barangay_id, $include_archived = false) {
+function user_can_access_resident_id($resident_id) {
+    $resident_id = (int)$resident_id;
+    if ($resident_id < 1) {
+        return false;
+    }
+    if (function_exists('is_admin') && is_admin()) {
+        return true;
+    }
+    $res = get_resident($resident_id);
+    if (!$res) {
+        return false;
+    }
+    $scope = null;
+    if (array_key_exists('barangay_id', $_SESSION)) {
+        $scope = $_SESSION['barangay_id'];
+    }
+    if ($scope === null || $scope === '') {
+        $scope = 1;
+    } else {
+        $scope = (int)$scope;
+    }
+    return (int)$res['barangay_id'] === $scope;
+}
+
+/**
+ * List residents for a barangay, or all barangays when $all_barangays is true (admin / super-admin UI).
+ */
+function list_residents($barangay_id, $include_archived = false, $all_barangays = false) {
     include __DIR__ . '/dbcon.php';
-    $bid = (int)$barangay_id;
     $status_clause = $include_archived ? '' : "AND r.status = 'active'";
+    if ($all_barangays) {
+        $where = '1=1';
+    } else {
+        $bid = (int)$barangay_id;
+        $where = "r.barangay_id = $bid";
+    }
     $sql = "SELECT r.*, b.brgy AS barangay_name
             FROM residents r
             LEFT JOIN barangays b ON b.n = r.barangay_id
-            WHERE r.barangay_id = $bid
+            WHERE $where
             $status_clause
-            ORDER BY r.last_name, r.first_name";
+            ORDER BY r.barangay_id, r.last_name, r.first_name";
     $result = mysqli_query($con, $sql);
     $rows = array();
     if ($result) {
@@ -353,6 +386,7 @@ function create_resident($d, $created_by) {
 
 /**
  * Update an existing resident. Returns true on success.
+ * Changing barangay_id is allowed only for admin (RESIDENT_ROADMAP.md).
  */
 function update_resident($id, $d) {
     include __DIR__ . '/dbcon.php';
@@ -365,10 +399,18 @@ function update_resident($id, $d) {
     $bday  = mysqli_real_escape_string($con, (string)($d['birthdate']    ?? ''));
     $gend  = mysqli_real_escape_string($con, (string)($d['gender']       ?? ''));
     $addr  = mysqli_real_escape_string($con, (string)($d['address_line'] ?? ''));
+    $bid_sql = '';
+    if (function_exists('is_admin') && is_admin() && isset($d['barangay_id'])) {
+        $nb = (int)$d['barangay_id'];
+        if ($nb > 0) {
+            $bid_sql = ", barangay_id=$nb";
+        }
+    }
     $sql = "UPDATE residents SET
               last_name='$lname', first_name='$fname', middle_name='$mname',
               email='$email', phone='$phone', birthdate='$bday',
               gender='$gend', address_line='$addr'
+              $bid_sql
             WHERE id=$id";
     return (bool)mysqli_query($con, $sql);
 }
@@ -377,19 +419,33 @@ function update_resident($id, $d) {
  * Archive a resident — admin only. Sets status = 'archived'.
  */
 function archive_resident($id) {
+    if (!function_exists('is_admin') || !is_admin()) {
+        return false;
+    }
     include __DIR__ . '/dbcon.php';
     $id = (int)$id;
     return (bool)mysqli_query($con, "UPDATE residents SET status='archived' WHERE id=$id");
 }
 
 /**
- * List permits, optionally filtered by resident.
+ * List permits, optionally filtered by resident and/or barangay (staff scope).
+ *
+ * @param int|null $resident_id       If set, filter to this resident.
+ * @param int|null $scope_barangay_id If set and > 0, only permits for residents in this barangay. Null = no barangay filter (e.g. super-admin).
  */
-function list_permits($resident_id = null) {
+function list_permits($resident_id = null, $scope_barangay_id = null) {
     include __DIR__ . '/dbcon.php';
-    $where = ($resident_id !== null) ? 'WHERE p.resident_id = ' . (int)$resident_id : '';
+    $parts = array();
+    if ($resident_id !== null) {
+        $parts[] = 'p.resident_id = ' . (int)$resident_id;
+    }
+    if ($scope_barangay_id !== null && (int)$scope_barangay_id > 0) {
+        $parts[] = 'r.barangay_id = ' . (int)$scope_barangay_id;
+    }
+    $where = count($parts) ? 'WHERE ' . implode(' AND ', $parts) : '';
     $sql = "SELECT p.*,
                    r.last_name, r.first_name,
+                   r.barangay_id AS resident_barangay_id,
                    pt.name AS permit_type_name,
                    su.UserName AS submitted_by_name,
                    au.UserName AS approved_by_name
@@ -416,7 +472,8 @@ function list_permits($resident_id = null) {
 function get_permit($id) {
     include __DIR__ . '/dbcon.php';
     $id = (int)$id;
-    $sql = "SELECT p.*, r.last_name, r.first_name, pt.name AS permit_type_name
+    $sql = "SELECT p.*, r.last_name, r.first_name, r.barangay_id AS resident_barangay_id,
+                   pt.name AS permit_type_name
             FROM permits p
             JOIN residents r    ON r.id  = p.resident_id
             JOIN permit_types pt ON pt.id = p.permit_type_id
@@ -457,6 +514,9 @@ function submit_permit($permit_id, $user_id) {
  * $action must be 'approved' or 'rejected'.
  */
 function decide_permit($permit_id, $admin_id, $action, $remarks = '') {
+    if (!function_exists('is_admin') || !is_admin()) {
+        return false;
+    }
     include __DIR__ . '/dbcon.php';
     $pid     = (int)$permit_id;
     $aid     = (int)$admin_id;

@@ -8,10 +8,10 @@ Use two browser profiles — one logged in as **staff**, one as **admin**.
 
 ## Preconditions
 
-| Account  | Username | Role  | Setup |
-|----------|----------|-------|-------|
-| Admin    | `admin`  | admin | Seeded by `007_seeds.sql`; password `ChangeMe2026!` |
-| Staff    | `staff1` | staff | Insert manually: `INSERT INTO users (UserName, PaSS, role) VALUES ('staff1','staff123','staff');` |
+| Account  | Username   | Role  | Setup |
+|----------|------------|-------|-------|
+| Admin    | `admin`    | admin | Seeded by `007_seeds.sql`; password `ChangeMe2026!`; `barangay_id` NULL (sees all barangays in legacy UI). |
+| Staff    | `staff_dev`| staff | Seeded by `007_seeds.sql`; password `ChangeMe2026!`; `barangay_id = 1`. |
 
 ---
 
@@ -31,8 +31,8 @@ Use two browser profiles — one logged in as **staff**, one as **admin**.
 
 | Field | Detail |
 |-------|--------|
-| **Precondition** | `staff1` account exists (see Preconditions) |
-| **Steps** | 1. Login as `staff1` / `staff123` |
+| **Precondition** | `staff_dev` account exists (see Preconditions) |
+| **Steps** | 1. Login as `staff_dev` / `ChangeMe2026!` |
 | **Expected** | Redirected to `brgy.php`; nav shows **no** SETTINGS link; logout label shows "STAFF" |
 | **Pass criteria** | Nav renders correctly with no Settings link |
 | **Fail indicator** | Settings link appears for staff |
@@ -55,7 +55,7 @@ Use two browser profiles — one logged in as **staff**, one as **admin**.
 
 | Field | Detail |
 |-------|--------|
-| **Precondition** | Logged in as `staff1` |
+| **Precondition** | Logged in as `staff_dev` |
 | **Steps** | 1. Navigate directly to `Settings.php` (URL bar) |
 | **Expected** | HTTP 302 redirect to `brgy.php?denied=1` |
 | **Pass criteria** | Page does not render Settings form; "Access denied" notice shown on dashboard |
@@ -79,7 +79,7 @@ Use two browser profiles — one logged in as **staff**, one as **admin**.
 
 | Field | Detail |
 |-------|--------|
-| **Precondition** | Logged in as `staff1`; barangay with ID 1 exists |
+| **Precondition** | Logged in as `staff_dev`; barangay with ID 1 exists |
 | **Steps** | 1. Click RESIDENTS → New Resident → fill all required fields → Create Resident |
 | **Expected** | Redirected to `residents.php` with success message; new resident row visible |
 | **Pass criteria** | Resident appears in list with status "Active" |
@@ -103,7 +103,7 @@ Use two browser profiles — one logged in as **staff**, one as **admin**.
 
 | Field | Detail |
 |-------|--------|
-| **Precondition** | Logged in as `staff1`; at least one active resident exists |
+| **Precondition** | Logged in as `staff_dev`; at least one active resident exists |
 | **Steps** | 1. Navigate directly to `resident_action.php?action=archive&id=1` |
 | **Expected** | Redirected to `brgy.php?denied=1` (blocked by `require_admin_role()`) |
 | **Pass criteria** | Resident status remains "active" in DB |
@@ -127,7 +127,7 @@ Use two browser profiles — one logged in as **staff**, one as **admin**.
 
 | Field | Detail |
 |-------|--------|
-| **Precondition** | Logged in as `staff1`; at least one active resident and permit type exist |
+| **Precondition** | Logged in as `staff_dev`; at least one active resident and permit type exist |
 | **Steps** | 1. Click PERMITS → New Permit → enter Resident ID → select "Barangay Clearance" → Create Permit |
 | **Expected** | Redirected to `permits.php` with success message; new row with status DRAFT |
 | **Pass criteria** | Permit row shows DRAFT badge |
@@ -151,7 +151,7 @@ Use two browser profiles — one logged in as **staff**, one as **admin**.
 
 | Field | Detail |
 |-------|--------|
-| **Precondition** | Logged in as `staff1`; a SUBMITTED permit exists |
+| **Precondition** | Logged in as `staff_dev`; a SUBMITTED permit exists |
 | **Steps** | 1. Open `permit_view.php?id=X` for a submitted permit |
 | **Expected** | Approve/Reject form is **not visible** on the page |
 | **Pass criteria** | Page shows permit details only; no decision buttons |
@@ -163,7 +163,7 @@ Use two browser profiles — one logged in as **staff**, one as **admin**.
 
 | Field | Detail |
 |-------|--------|
-| **Precondition** | Logged in as `staff1`; a SUBMITTED permit with ID `X` exists |
+| **Precondition** | Logged in as `staff_dev`; a SUBMITTED permit with ID `X` exists |
 | **Steps** | 1. Navigate directly to `permit_action.php?action=approve&id=X` |
 | **Expected** | Redirected to `brgy.php?denied=1` |
 | **Pass criteria** | `permits.status` unchanged in DB |
@@ -192,6 +192,30 @@ Use two browser profiles — one logged in as **staff**, one as **admin**.
 | **Expected** | Status = REJECTED; remarks saved |
 | **Pass criteria** | `permits.status = 'rejected'`, `remarks = 'Missing documents'` in DB |
 | **Fail indicator** | Status unchanged |
+
+---
+
+## IT-17 — Staff cannot assign or change `barangay_id` (server-enforced)
+
+| Field | Detail |
+|-------|--------|
+| **Precondition** | Logged in as `staff_dev`; use browser devtools or a proxy to POST `resident_save.php` with an extra `barangay_id` different from `1` |
+| **Steps** | 1. Create or edit a resident while tampering `barangay_id` to another barangay ID (e.g. `2`) |
+| **Expected** | Saved resident remains in barangay `1` (session scope); `update_resident` / `create_resident` ignore forged barangay for non-admins |
+| **Pass criteria** | DB row `residents.barangay_id` matches staff session barangay |
+| **Fail indicator** | Resident appears under another barangay |
+
+---
+
+## IT-18 — Staff cannot open edit form for a resident outside their barangay
+
+| Field | Detail |
+|-------|--------|
+| **Precondition** | A resident exists with `barangay_id` ≠ staff session barangay (e.g. `2`); logged in as `staff_dev` (barangay `1`) |
+| **Steps** | 1. Navigate to `resident_form.php?id=<that resident>` |
+| **Expected** | Redirect to `residents.php?error=Access denied.` |
+| **Pass criteria** | No edit form rendered |
+| **Fail indicator** | Form loads and allows save |
 
 ---
 

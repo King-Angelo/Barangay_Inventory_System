@@ -40,6 +40,12 @@ if (isset($_POST['btn-send'])) {
                 $_SESSION['user']    = (string)$r['UserName'];
                 $_SESSION['role']    = isset($r['role']) ? (string)$r['role'] : 'staff';
                 $_SESSION['user_id'] = isset($r['id'])  ? (int)$r['id']       : 0;
+                // users.barangay_id: NULL = admin may span all barangays (see RESIDENT_ROADMAP.md)
+                if (array_key_exists('barangay_id', $r) && $r['barangay_id'] !== null && $r['barangay_id'] !== '') {
+                    $_SESSION['barangay_id'] = (int)$r['barangay_id'];
+                } else {
+                    $_SESSION['barangay_id'] = null;
+                }
 
                 // Relative redirect — works in any subfolder
                 header('Location: brgy.php', true, 302);

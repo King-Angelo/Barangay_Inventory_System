@@ -11,12 +11,18 @@ $error            = htmlspecialchars($_GET['error'] ?? '', ENT_QUOTES, 'UTF-8');
 // Resident search
 $search    = trim($_GET['search'] ?? '');
 $residents = array();
+$brgy_sql  = '';
+if (!function_exists('is_admin') || !is_admin()) {
+    $bid = (int)($_SESSION['barangay_id'] ?? 1);
+    $brgy_sql = ' AND barangay_id = ' . $bid;
+}
 if ($search !== '') {
     $esc = mysqli_real_escape_string($con, $search);
     $q   = mysqli_query($con,
         "SELECT id, last_name, first_name, email
          FROM residents
          WHERE status='active'
+           $brgy_sql
            AND (last_name LIKE '%$esc%' OR first_name LIKE '%$esc%' OR email LIKE '%$esc%')
          LIMIT 20");
     if ($q) {

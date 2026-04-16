@@ -21,7 +21,19 @@ $data = array(
     'barangay_id'  => (int)($_POST['barangay_id'] ?? 1),
 );
 
+$staff_brgy = (int)($_SESSION['barangay_id'] ?? 1);
+if (!function_exists('is_admin') || !is_admin()) {
+    $data['barangay_id'] = $staff_brgy;
+}
+
 if ($id > 0) {
+    if (!user_can_access_resident_id($id)) {
+        header('Location: residents.php?error=' . urlencode('Access denied.'));
+        exit;
+    }
+    if (!function_exists('is_admin') || !is_admin()) {
+        unset($data['barangay_id']);
+    }
     $ok = update_resident($id, $data);
     if ($ok) {
         header('Location: residents.php?msg=' . urlencode('Resident updated successfully.'));

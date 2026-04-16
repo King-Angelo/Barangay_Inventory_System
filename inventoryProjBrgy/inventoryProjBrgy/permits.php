@@ -4,7 +4,11 @@ include __DIR__ . '/dbcon.php';
 include __DIR__ . '/actions.php';
 
 $resident_id = isset($_GET['resident_id']) ? (int)$_GET['resident_id'] : null;
-$permits     = list_permits($resident_id);
+$scope_brgy = null;
+if (!function_exists('is_admin') || !is_admin()) {
+    $scope_brgy = (int)($_SESSION['barangay_id'] ?? 1);
+}
+$permits = list_permits($resident_id, $scope_brgy);
 $msg         = htmlspecialchars($_GET['msg']   ?? '', ENT_QUOTES, 'UTF-8');
 $error       = htmlspecialchars($_GET['error'] ?? '', ENT_QUOTES, 'UTF-8');
 
