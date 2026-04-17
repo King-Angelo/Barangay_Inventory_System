@@ -50,6 +50,7 @@ final class PaymentApiService
 		$providerRef = 'MOCK-' . strtoupper(bin2hex(random_bytes(8)));
 
 		mysqli_begin_transaction($con);
+		$paymentId = 0;
 		try {
 			$sql = 'INSERT INTO `payments` (`permit_id`, `amount`, `currency`, `status`, `provider`, `provider_ref`, `idempotency_key`, `paid_at`)
 				VALUES (?, ?, \'PHP\', \'paid\', \'mock\', ?, ?, NOW())';
@@ -59,24 +60,44 @@ final class PaymentApiService
 			}
 			$idempOrNull = $idemp !== '' ? $idemp : null;
 			mysqli_stmt_bind_param($st, 'idss', $permitId, $amount, $providerRef, $idempOrNull);
-			if (!mysqli_stmt_execute($st)) {
-				$err = mysqli_stmt_error($st);
+			try {
+				if (!mysqli_stmt_execute($st)) {
+					$err = mysqli_stmt_error($st);
+					mysqli_stmt_close($st);
+					if (stripos($err, 'Duplicate') !== false || str_contains($err, 'uq_permit')) {
+						throw new \InvalidArgumentException('Payment already exists for this permit.');
+					}
+					throw new \RuntimeException($err !== '' ? $err : 'INSERT failed.');
+				}
+			} catch (\mysqli_sql_exception $e) {
 				mysqli_stmt_close($st);
-				if (str_contains($err, 'Duplicate') || str_contains($err, 'uq_permit')) {
+				$msg = $e->getMessage();
+				if ((int) $e->getCode() === 1062 || mysqli_errno($con) === 1062 || stripos($msg, 'Duplicate entry') !== false) {
 					throw new \InvalidArgumentException('Payment already exists for this permit.');
 				}
-				throw new \RuntimeException($err);
+				throw new \RuntimeException($msg !== '' ? $msg : 'Insert failed.', 0, $e);
 			}
 			$paymentId = (int) mysqli_insert_id($con);
 			mysqli_stmt_close($st);
 
 			$sql2 = 'UPDATE `permits` SET `status` = \'paid\' WHERE `id` = ? AND `status` IN (\'approved\', \'ready_for_payment\')';
 			$st2 = mysqli_prepare($con, $sql2);
+			if ($st2 === false) {
+				throw new \RuntimeException(mysqli_error($con));
+			}
 			mysqli_stmt_bind_param($st2, 'i', $permitId);
-			mysqli_stmt_execute($st2);
-			if (mysqli_affected_rows($con) < 1) {
+			try {
+				if (!mysqli_stmt_execute($st2)) {
+					$updErr = mysqli_stmt_error($st2);
+					mysqli_stmt_close($st2);
+					throw new \InvalidArgumentException('Could not update permit status to paid: ' . ($updErr !== '' ? $updErr : 'UPDATE failed.'));
+				}
+			} catch (\mysqli_sql_exception $e) {
 				mysqli_stmt_close($st2);
-				mysqli_rollback($con);
+				throw new \RuntimeException('Permit update to paid failed: ' . $e->getMessage(), 0, $e);
+			}
+			if (mysqli_stmt_affected_rows($st2) < 1) {
+				mysqli_stmt_close($st2);
 				throw new \InvalidArgumentException('Could not update permit status to paid.');
 			}
 			mysqli_stmt_close($st2);
@@ -96,13 +117,17 @@ final class PaymentApiService
 	 */
 	private static function findByIdempotency(mysqli $con, string $key): ?array
 	{
-		$sql = 'SELECT * FROM `payments` WHERE `idempotency_key` = ? LIMIT 1';
-		$st = mysqli_prepare($con, $sql);
-		mysqli_stmt_bind_param($st, 's', $key);
-		mysqli_stmt_execute($st);
-		$res = mysqli_stmt_get_result($st);
-		$row = $res ? mysqli_fetch_assoc($res) : null;
-		mysqli_stmt_close($st);
+		if ($key === '') {
+			return null;
+		}
+		$esc = mysqli_real_escape_string($con, $key);
+		$sql = 'SELECT * FROM `payments` WHERE `idempotency_key` = \'' . $esc . '\' LIMIT 1';
+		$res = mysqli_query($con, $sql);
+		if ($res === false) {
+			return null;
+		}
+		$row = mysqli_fetch_assoc($res);
+		mysqli_free_result($res);
 		return is_array($row) ? $row : null;
 	}
 
@@ -111,13 +136,16 @@ final class PaymentApiService
 	 */
 	private static function getPaymentById(mysqli $con, int $id): ?array
 	{
-		$sql = 'SELECT * FROM `payments` WHERE `id` = ? LIMIT 1';
-		$st = mysqli_prepare($con, $sql);
-		mysqli_stmt_bind_param($st, 'i', $id);
-		mysqli_stmt_execute($st);
-		$res = mysqli_stmt_get_result($st);
-		$row = $res ? mysqli_fetch_assoc($res) : null;
-		mysqli_stmt_close($st);
+		if ($id < 1) {
+			return null;
+		}
+		$sql = 'SELECT * FROM `payments` WHERE `id` = ' . $id . ' LIMIT 1';
+		$res = mysqli_query($con, $sql);
+		if ($res === false) {
+			return null;
+		}
+		$row = mysqli_fetch_assoc($res);
+		mysqli_free_result($res);
 		return is_array($row) ? $row : null;
 	}
 }

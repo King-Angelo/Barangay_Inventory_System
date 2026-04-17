@@ -36,10 +36,15 @@ final class OutboxService
 			throw new \RuntimeException(mysqli_error($con));
 		}
 		mysqli_stmt_bind_param($st, 'sis', $eventType, $permitId, $payload);
-		if (!mysqli_stmt_execute($st)) {
-			$err = mysqli_stmt_error($st);
+		try {
+			if (!mysqli_stmt_execute($st)) {
+				$err = mysqli_stmt_error($st);
+				mysqli_stmt_close($st);
+				throw new \RuntimeException('Outbox insert failed: ' . $err);
+			}
+		} catch (\mysqli_sql_exception $e) {
 			mysqli_stmt_close($st);
-			throw new \RuntimeException('Outbox insert failed: ' . $err);
+			self::rethrowOutboxFailure($con, $e);
 		}
 		mysqli_stmt_close($st);
 	}
@@ -66,11 +71,27 @@ final class OutboxService
 			throw new \RuntimeException(mysqli_error($con));
 		}
 		mysqli_stmt_bind_param($st, 'is', $paymentId, $payload);
-		if (!mysqli_stmt_execute($st)) {
-			$err = mysqli_stmt_error($st);
+		try {
+			if (!mysqli_stmt_execute($st)) {
+				$err = mysqli_stmt_error($st);
+				mysqli_stmt_close($st);
+				throw new \RuntimeException('Outbox insert failed: ' . $err);
+			}
+		} catch (\mysqli_sql_exception $e) {
 			mysqli_stmt_close($st);
-			throw new \RuntimeException('Outbox insert failed: ' . $err);
+			self::rethrowOutboxFailure($con, $e);
 		}
 		mysqli_stmt_close($st);
+	}
+
+	private static function rethrowOutboxFailure(mysqli $con, \mysqli_sql_exception $e): void
+	{
+		$msg = $e->getMessage();
+		$hint = '';
+		$no = mysqli_errno($con);
+		if ($no === 1146 || str_contains($msg, '1146') || str_contains($msg, "doesn't exist")) {
+			$hint = ' Apply migration `005_integration_events_and_notification_log.sql` (table `integration_events`).';
+		}
+		throw new \RuntimeException('Outbox insert failed: ' . $msg . $hint, 0, $e);
 	}
 }

@@ -84,13 +84,7 @@ final class ResidentApiService
 
 	public static function getById(mysqli $con, AuthContext $ctx, int $id): ?array
 	{
-		$sql = 'SELECT * FROM `residents` WHERE `id` = ? LIMIT 1';
-		$st = mysqli_prepare($con, $sql);
-		mysqli_stmt_bind_param($st, 'i', $id);
-		mysqli_stmt_execute($st);
-		$res = mysqli_stmt_get_result($st);
-		$row = $res ? mysqli_fetch_assoc($res) : null;
-		mysqli_stmt_close($st);
+		$row = self::getByIdUnscoped($con, $id);
 		if (!is_array($row)) {
 			return null;
 		}
@@ -135,6 +129,8 @@ final class ResidentApiService
 		if ($st === false) {
 			throw new \RuntimeException(mysqli_error($con));
 		}
+		// mysqli_stmt_bind_param requires variables by reference — not $ctx->userId directly.
+		$createdByUserId = $ctx->userId;
 		// Types: i + 8 strings + i
 		mysqli_stmt_bind_param(
 			$st,
@@ -148,15 +144,26 @@ final class ResidentApiService
 			$birthSql,
 			$gender,
 			$addr,
-			$ctx->userId,
+			$createdByUserId,
 		);
-		if (!mysqli_stmt_execute($st)) {
-			$err = mysqli_stmt_error($st);
+		try {
+			$executed = mysqli_stmt_execute($st);
+		} catch (\mysqli_sql_exception $e) {
 			mysqli_stmt_close($st);
-			if (str_contains($err, 'Duplicate') || str_contains($err, 'uq_resident')) {
+			$errno = (int) $e->getCode();
+			$msg = $e->getMessage();
+			if ($errno === 1062 || mysqli_errno($con) === 1062 || stripos($msg, 'Duplicate entry') !== false || str_contains($msg, 'uq_resident')) {
 				throw new \InvalidArgumentException('Email already registered for this barangay.');
 			}
-			throw new \RuntimeException($err);
+			throw new \RuntimeException($msg !== '' ? $msg : 'Insert failed.', 0, $e);
+		}
+		if (!$executed) {
+			$err = mysqli_stmt_error($st);
+			mysqli_stmt_close($st);
+			if (stripos($err, 'Duplicate entry') !== false || str_contains($err, 'uq_resident')) {
+				throw new \InvalidArgumentException('Email already registered for this barangay.');
+			}
+			throw new \RuntimeException($err !== '' ? $err : 'Insert failed.');
 		}
 		$newId = (int) mysqli_insert_id($con);
 		mysqli_stmt_close($st);
@@ -223,12 +230,21 @@ final class ResidentApiService
 		}
 		call_user_func_array([$st, 'bind_param'], $refs);
 		$ok = mysqli_stmt_execute($st);
-		if (!$ok && mysqli_errno($con) && str_contains(mysqli_error($con), 'Duplicate')) {
+		if (!$ok) {
+			$stmtErr = mysqli_stmt_error($st);
+			$conErr = mysqli_error($con);
 			mysqli_stmt_close($st);
-			throw new \InvalidArgumentException('Email already registered for this barangay.');
+			if ($conErr !== '' && str_contains($conErr, 'Duplicate')) {
+				throw new \InvalidArgumentException('Email already registered for this barangay.');
+			}
+			if (str_contains($stmtErr, 'Duplicate')) {
+				throw new \InvalidArgumentException('Email already registered for this barangay.');
+			}
+			// Do not return false here — that becomes a misleading 404; surface the real DB error.
+			throw new \RuntimeException($stmtErr !== '' ? $stmtErr : ($conErr !== '' ? $conErr : 'UPDATE failed.'));
 		}
 		mysqli_stmt_close($st);
-		return $ok && mysqli_affected_rows($con) >= 0;
+		return true;
 	}
 
 	/**
@@ -291,30 +307,61 @@ final class ResidentApiService
 		$gender = $gender === '' ? null : $gender;
 		$addr = $addr === '' ? null : $addr;
 
+		$stDup = mysqli_prepare($con, 'SELECT `id` FROM `residents` WHERE `barangay_id` = ? AND `email` = ? AND `id` <> ? LIMIT 1');
+		if ($stDup !== false) {
+			$dupId = 0;
+			mysqli_stmt_bind_param($stDup, 'isi', $bid, $email, $id);
+			mysqli_stmt_execute($stDup);
+			mysqli_stmt_bind_result($stDup, $dupId);
+			if (mysqli_stmt_fetch($stDup) && $dupId > 0) {
+				mysqli_stmt_close($stDup);
+				throw new \InvalidArgumentException('Email already registered for this barangay (another resident uses this address).');
+			}
+			mysqli_stmt_close($stDup);
+		}
+
 		$sql = 'UPDATE `residents` SET `barangay_id` = ?, `last_name` = ?, `first_name` = ?, `middle_name` = ?, `email` = ?, `phone` = ?, `birthdate` = ?, `gender` = ?, `address_line` = ?, `status` = ? WHERE `id` = ?';
 		$st = mysqli_prepare($con, $sql);
 		if ($st === false) {
 			throw new \RuntimeException(mysqli_error($con));
 		}
 		mysqli_stmt_bind_param($st, 'isssssssssi', $bid, $last, $first, $middle, $email, $phone, $birthSql, $gender, $addr, $status, $id);
-		$ok = mysqli_stmt_execute($st);
-		if (!$ok && mysqli_errno($con) && str_contains(mysqli_error($con), 'Duplicate')) {
+		try {
+			$ok = mysqli_stmt_execute($st);
+		} catch (\mysqli_sql_exception $e) {
 			mysqli_stmt_close($st);
-			throw new \InvalidArgumentException('Email already registered for this barangay.');
+			$errno = (int) $e->getCode();
+			$msg = $e->getMessage();
+			if ($errno === 1062 || mysqli_errno($con) === 1062 || stripos($msg, 'Duplicate entry') !== false) {
+				throw new \InvalidArgumentException('Email already registered for this barangay (another resident uses this address).');
+			}
+			throw new \RuntimeException($msg !== '' ? $msg : 'Update failed.', 0, $e);
+		}
+		if (!$ok) {
+			$mysqliErr = mysqli_error($con);
+			mysqli_stmt_close($st);
+			if ($mysqliErr !== '' && stripos($mysqliErr, 'Duplicate entry') !== false) {
+				throw new \InvalidArgumentException('Email already registered for this barangay (another resident uses this address).');
+			}
+			throw new \RuntimeException($mysqliErr !== '' ? $mysqliErr : 'UPDATE failed.');
 		}
 		mysqli_stmt_close($st);
-		return $ok && mysqli_affected_rows($con) >= 0;
+		return true;
 	}
 
 	private static function getByIdUnscoped(mysqli $con, int $id): ?array
 	{
-		$sql = 'SELECT * FROM `residents` WHERE `id` = ? LIMIT 1';
-		$st = mysqli_prepare($con, $sql);
-		mysqli_stmt_bind_param($st, 'i', $id);
-		mysqli_stmt_execute($st);
-		$res = mysqli_stmt_get_result($st);
-		$row = $res ? mysqli_fetch_assoc($res) : null;
-		mysqli_stmt_close($st);
+		if ($id < 1) {
+			return null;
+		}
+		// Integer id only — avoids mysqli_stmt_get_result() when mysqlnd is missing (otherwise false → “not found”).
+		$sql = 'SELECT * FROM `residents` WHERE `id` = ' . $id . ' LIMIT 1';
+		$result = mysqli_query($con, $sql);
+		if ($result === false) {
+			return null;
+		}
+		$row = mysqli_fetch_assoc($result);
+		mysqli_free_result($result);
 		return is_array($row) ? $row : null;
 	}
 

@@ -12,17 +12,18 @@ $port = ($dbPort !== false && $dbPort !== '') ? (int) $dbPort : 3306;
 if ($port < 1 || $port > 65535) {
 	$port = 3306;
 }
-$username = getenv('DB_USER') ?: 'root';
-$password = getenv('DB_PASS') !== false ? (string) getenv('DB_PASS') : '';
+// Use $dbUser / $dbPass — not $username / $password — so callers (e.g. api/index.php login) are not overwritten.
+$dbUser = getenv('DB_USER') ?: 'root';
+$dbPass = getenv('DB_PASS') !== false ? (string) getenv('DB_PASS') : '';
 $dbname = getenv('DB_NAME') ?: 'mimds';
 
 try {
-	$con = mysqli_connect($host, $username, $password, $dbname, $port);
+	$con = mysqli_connect($host, $dbUser, $dbPass, $dbname, $port);
 } catch (mysqli_sql_exception $e) {
 	error_log('mysqli_connect failed: ' . $e->getMessage());
 	if (PHP_SAPI === 'cli') {
 		fwrite(STDERR, 'Database connection failed: ' . $e->getMessage() . "\n");
-		fwrite(STDERR, "Tried: host={$host} port={$port} user={$username} database={$dbname}\n");
+		fwrite(STDERR, "Tried: host={$host} port={$port} user={$dbUser} database={$dbname}\n");
 		fwrite(STDERR, "Fix: start MySQL (e.g. XAMPP → Start MySQL). Check DB_HOST and DB_PORT in .env.local.\n");
 		exit(1);
 	}
@@ -34,7 +35,7 @@ if ($con === false) {
 	error_log('mysqli_connect failed: ' . $err);
 	if (PHP_SAPI === 'cli') {
 		fwrite(STDERR, 'Database connection failed: ' . $err . "\n");
-		fwrite(STDERR, "Tried: host={$host} port={$port} user={$username} database={$dbname}\n");
+		fwrite(STDERR, "Tried: host={$host} port={$port} user={$dbUser} database={$dbname}\n");
 		fwrite(STDERR, "Fix: start MySQL (e.g. XAMPP → Start MySQL). Check DB_HOST and DB_PORT in .env.local.\n");
 		exit(1);
 	}

@@ -1,12 +1,15 @@
 {
 	"info": {
 		"name": "Barangay Inventory API",
-		"description": "JWT auth + residents + permits + mock payments. Verbs: GET/POST/PUT/PATCH/DELETE. Run `php -S 127.0.0.1:8765 dev-router.php` from inventoryProjBrgy/inventoryProjBrgy. Set {{base_url}} and run **Auth / Login** first; token saves to collection variable. Mock payment requires a permit in **approved** (or ready_for_payment) status — run Submit then Approve (admin) first.",
+		"description": "JWT auth + residents + permits + mock payments. Verbs: GET/POST/PUT/PATCH/DELETE. **DB (mimds):** mock payments need migration **`004_payments.sql`** (`payments` table); approve/outbox need **`005_integration_events_and_notification_log.sql`**. Apply both if `POST /v1/payments` returns **500**. Run `php -S 127.0.0.1:8765 dev-router.php` from inventoryProjBrgy/inventoryProjBrgy. Set {{base_url}} and run **Auth / Login** first; token saves to collection variable. **Residents → Create:** `email` uses Postman **`{{$timestamp}}`** so each run is unique (repeat posts with the same static email return **400** duplicate). **`resident_email`** is set from **201** for **Put**. **Permits:** after **Create draft** (201), **`permit_id`** is saved — use it for **Submit** / **Approve** / **Delete** / **Mock pay** (do not assume id `1`). Mock payment needs **approved** — run **Submit** then **Approve (admin)** first.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"variable": [
 		{ "key": "base_url", "value": "http://127.0.0.1:8765/api" },
-		{ "key": "token", "value": "" }
+		{ "key": "token", "value": "" },
+		{ "key": "resident_id", "value": "1", "type": "string" },
+		{ "key": "resident_email", "value": "", "type": "string" },
+		{ "key": "permit_id", "value": "1", "type": "string" }
 	],
 	"item": [
 		{
@@ -65,11 +68,28 @@
 					"request": {
 						"method": "GET",
 						"header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-						"url": "{{base_url}}/v1/residents/1"
+						"url": "{{base_url}}/v1/residents/{{resident_id}}"
 					}
 				},
 				{
 					"name": "Create",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"try {",
+									"  var j = pm.response.json();",
+									"  if (pm.response.code === 201 && j.data && j.data.id != null) {",
+									"    pm.collectionVariables.set('resident_id', String(j.data.id));",
+									"    if (j.data.email) { pm.collectionVariables.set('resident_email', String(j.data.email)); }",
+									"  }",
+									"} catch (e) {}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [
@@ -78,7 +98,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"barangay_id\": 1,\n  \"last_name\": \"Dela Cruz\",\n  \"first_name\": \"Juan\",\n  \"middle_name\": \"\",\n  \"email\": \"juan.dc.example@local.test\",\n  \"phone\": \"\",\n  \"birthdate\": \"\",\n  \"gender\": \"\",\n  \"address_line\": \"\"\n}"
+							"raw": "{\n  \"barangay_id\": 1,\n  \"last_name\": \"Dela Cruz\",\n  \"first_name\": \"Juan\",\n  \"middle_name\": \"\",\n  \"email\": \"resident.{{$timestamp}}@local.test\",\n  \"phone\": \"\",\n  \"birthdate\": \"\",\n  \"gender\": \"\",\n  \"address_line\": \"\"\n}"
 						},
 						"url": "{{base_url}}/v1/residents"
 					}
@@ -95,12 +115,13 @@
 							"mode": "raw",
 							"raw": "{\n  \"phone\": \"09171234567\"\n}"
 						},
-						"url": "{{base_url}}/v1/residents/1"
+						"url": "{{base_url}}/v1/residents/{{resident_id}}"
 					}
 				},
 				{
 					"name": "Put (full replace, admin)",
 					"request": {
+						"description": "PUT uses **`{{resident_email}}`** (saved from **Create** 201). Edit only if you copied from **Get by id**; a taken email returns **400** duplicate.",
 						"method": "PUT",
 						"header": [
 							{ "key": "Authorization", "value": "Bearer {{token}}" },
@@ -108,9 +129,9 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"barangay_id\": 1,\n  \"last_name\": \"Dela Cruz\",\n  \"first_name\": \"Juan\",\n  \"middle_name\": \"\",\n  \"email\": \"juan.put@local.test\",\n  \"phone\": \"\",\n  \"birthdate\": \"\",\n  \"gender\": \"\",\n  \"address_line\": \"\",\n  \"status\": \"active\"\n}"
+							"raw": "{\n  \"barangay_id\": 1,\n  \"last_name\": \"Dela Cruz\",\n  \"first_name\": \"Juan\",\n  \"middle_name\": \"\",\n  \"email\": \"{{resident_email}}\",\n  \"phone\": \"\",\n  \"birthdate\": \"\",\n  \"gender\": \"\",\n  \"address_line\": \"\",\n  \"status\": \"active\"\n}"
 						},
-						"url": "{{base_url}}/v1/residents/1"
+						"url": "{{base_url}}/v1/residents/{{resident_id}}"
 					}
 				}
 			]
@@ -131,11 +152,27 @@
 					"request": {
 						"method": "GET",
 						"header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-						"url": "{{base_url}}/v1/permits/1"
+						"url": "{{base_url}}/v1/permits/{{permit_id}}"
 					}
 				},
 				{
 					"name": "Create draft",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"try {",
+									"  var j = pm.response.json();",
+									"  if (pm.response.code === 201 && j.data && j.data.id != null) {",
+									"    pm.collectionVariables.set('permit_id', String(j.data.id));",
+									"  }",
+									"} catch (e) {}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [
@@ -144,7 +181,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"resident_id\": 1,\n  \"permit_type_id\": 1\n}"
+							"raw": "{\n  \"resident_id\": {{resident_id}},\n  \"permit_type_id\": 1\n}"
 						},
 						"url": "{{base_url}}/v1/permits"
 					}
@@ -152,6 +189,7 @@
 				{
 					"name": "Submit",
 					"request": {
+						"description": "PATCH the **draft** created by **Create draft** — url uses `{{permit_id}}` (set from 201 response). Submitting id `1` fails if permit 1 is not `draft` (e.g. already submitted).",
 						"method": "PATCH",
 						"header": [
 							{ "key": "Authorization", "value": "Bearer {{token}}" },
@@ -161,12 +199,13 @@
 							"mode": "raw",
 							"raw": "{\n  \"action\": \"submit\"\n}"
 						},
-						"url": "{{base_url}}/v1/permits/1"
+						"url": "{{base_url}}/v1/permits/{{permit_id}}"
 					}
 				},
 				{
 					"name": "Approve (admin)",
 					"request": {
+						"description": "Requires **admin** JWT. After approve, server writes `integration_events` (migration **005**). If you get **500**, apply `005_integration_events_and_notification_log.sql` and retry.",
 						"method": "PATCH",
 						"header": [
 							{ "key": "Authorization", "value": "Bearer {{token}}" },
@@ -176,15 +215,16 @@
 							"mode": "raw",
 							"raw": "{\n  \"action\": \"approve\",\n  \"remarks\": \"OK\"\n}"
 						},
-						"url": "{{base_url}}/v1/permits/1"
+						"url": "{{base_url}}/v1/permits/{{permit_id}}"
 					}
 				},
 				{
 					"name": "Delete draft",
 					"request": {
+						"description": "Only while permit **`status`** is **draft**. After **Submit**, deletion returns **400** (use workflows that leave rejected/done permits, or test with a new **Create draft**).",
 						"method": "DELETE",
 						"header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-						"url": "{{base_url}}/v1/permits/1"
+						"url": "{{base_url}}/v1/permits/{{permit_id}}"
 					}
 				}
 			]
@@ -195,6 +235,7 @@
 				{
 					"name": "Mock pay (after approve)",
 					"request": {
+						"description": "Permit must be **approved** (or ready_for_payment). Inserts `payments` and outbox **`payment.paid`** — same **005** migration as Approve. Change **`idempotency_key`** if you repeat the request after a success.",
 						"method": "POST",
 						"header": [
 							{ "key": "Authorization", "value": "Bearer {{token}}" },
@@ -202,7 +243,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"permit_id\": 1,\n  \"amount\": 100.0,\n  \"idempotency_key\": \"postman-demo-001\"\n}"
+							"raw": "{\n  \"permit_id\": {{permit_id}},\n  \"amount\": 100.0,\n  \"idempotency_key\": \"postman-demo-001\"\n}"
 						},
 						"url": "{{base_url}}/v1/payments"
 					}

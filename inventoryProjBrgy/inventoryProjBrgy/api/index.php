@@ -52,6 +52,16 @@ function read_json_body(): array
 	return is_array($data) ? $data : [];
 }
 
+/** Dotenv + getenv; Windows may only populate $_ENV for custom keys. */
+function auth_debug_login_enabled(): bool
+{
+	$v = $_ENV['AUTH_DEBUG_LOGIN'] ?? $_SERVER['AUTH_DEBUG_LOGIN'] ?? getenv('AUTH_DEBUG_LOGIN');
+	if ($v === false || $v === null) {
+		return false;
+	}
+	return trim((string) $v) === '1';
+}
+
 // --- Public: POST /v1/auth/login
 if ($method === 'POST' && $segments === ['v1', 'auth', 'login']) {
 	$data = read_json_body();
@@ -66,6 +76,8 @@ if ($method === 'POST' && $segments === ['v1', 'auth', 'login']) {
 
 	require_once dirname(__DIR__) . '/dbcon.php';
 
+	AuthService::resetLoginDebugState();
+
 	try {
 		$user = AuthService::verifyPassword($con, $username, $password);
 	} catch (\Throwable $e) {
@@ -74,6 +86,22 @@ if ($method === 'POST' && $segments === ['v1', 'auth', 'login']) {
 	}
 
 	if ($user === null) {
+		if (auth_debug_login_enabled()) {
+			http_response_code(401);
+			echo json_encode([
+				'error' => 'invalid_credentials',
+				'message' => 'Invalid username or password.',
+				'debug' => [
+					'reason' => AuthService::getLastLoginFailureReason(),
+					'meta' => AuthService::getLastLoginFailureMeta(),
+					'api_lens' => [
+						'username_len' => strlen($username),
+						'password_len' => strlen($password),
+					],
+				],
+			], JSON_UNESCAPED_SLASHES);
+			exit;
+		}
 		json_error(401, 'invalid_credentials', 'Invalid username or password.');
 	}
 
@@ -247,7 +275,8 @@ try {
 	}
 } catch (\InvalidArgumentException $e) {
 	$msg = $e->getMessage();
-	if (str_contains($msg, 'Forbidden') || str_contains($msg, 'only admins') || str_contains($msg, 'Only admins')) {
+	$lower = strtolower($msg);
+	if (str_contains($lower, 'forbidden') || str_contains($lower, 'only admins')) {
 		json_error(403, 'forbidden', $msg);
 	}
 	json_error(400, 'bad_request', $msg);

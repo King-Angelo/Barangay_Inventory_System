@@ -6,3 +6,5 @@ inventoryProjBrgy/inventoryProjBrgy/vendor/
 inventoryProjBrgy/inventoryProjBrgy/composer.phar
 inventoryProjBrgy/inventoryProjBrgy/composer-setup.php
 inventoryProjBrgy/inventoryProjBrgy/.phpunit.cache/
+# local curl/Postman test payload (may contain password)
+inventoryProjBrgy/inventoryProjBrgy/login.json
